@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Pipeline — Batch Image Processing</title>
+    <meta name="description" content="Browser-based batch image processing with a visual node editor. Resize, crop, compress, and convert images — all locally." />
+    <style>
+      .skeleton {
+        background: linear-gradient(90deg, #1A1A24 25%, #22222e 50%, #1A1A24 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s ease-in-out infinite;
+        border-radius: 4px;
+      }
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .skeleton-layout {
+        display: flex;
+        height: 100vh;
+        background: #0D0D14;
+      }
+      .skeleton-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        background: #111118;
+        z-index: 10;
+      }
+      .skeleton-sidebar-left {
+        width: 240px;
+        background: #111118;
+        height: calc(100vh - 56px);
+        margin-top: 56px;
+        padding: 16px;
+      }
+      .skeleton-main {
+        flex: 1;
+        background: #0D0D14;
+        height: calc(100vh - 56px);
+        margin-top: 56px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .skeleton-sidebar-right {
+        width: 300px;
+        background: #111118;
+        height: calc(100vh - 56px);
+        margin-top: 56px;
+        padding: 16px;
+      }
+      .skeleton-bar {
+        height: 20px;
+        margin-bottom: 12px;
+      }
+      .skeleton-square {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="skeleton-layout">
+        <div class="skeleton-header">
+          <div class="skeleton skeleton-bar" style="width: 160px; margin: 18px 24px;"></div>
+        </div>
+        <aside class="skeleton-sidebar-left">
+          <div class="skeleton skeleton-bar" style="width: 80px;"></div>
+          <div class="skeleton skeleton-bar" style="width: 100%;"></div>
+          <div class="skeleton skeleton-bar" style="width: 100%;"></div>
+          <div class="skeleton skeleton-bar" style="width: 70%;"></div>
+        </aside>
+        <main class="skeleton-main">
+          <div style="text-align: center;">
+            <div class="skeleton" style="width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;"></div>
+            <div class="skeleton skeleton-bar" style="width: 200px; margin: 0 auto;"></div>
+            <div class="skeleton skeleton-bar" style="width: 140px; margin: 8px auto 0;"></div>
+          </div>
+        </main>
+        <aside class="skeleton-sidebar-right">
+          <div class="skeleton skeleton-bar" style="width: 60px;"></div>
+          <div class="skeleton skeleton-bar" style="width: 100%;"></div>
+          <div class="skeleton skeleton-bar" style="width: 100%;"></div>
+          <div class="skeleton skeleton-bar" style="width: 100%;"></div>
+        </aside>
+      </div>
+    </div>
+
+    <noscript>
+      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #0D0D14; color: #E2E8F0; font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 2rem;">
+        <div>
+          <div style="font-size: 48px; margin-bottom: 16px;">&#x26A1;</div>
+          <h1 style="font-size: 24px; margin-bottom: 8px;">Image Pipeline requires JavaScript</h1>
+          <p style="color: #94A3B8;">Please enable JavaScript or use a modern browser.</p>
+        </div>
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

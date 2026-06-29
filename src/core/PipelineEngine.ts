@@ -1,0 +1,94 @@
+import { applyResize, applyCrop, applyWatermark, convertFormat } from "./canvas";
+import type { PipelineNode, PipelineEdge } from "../types";
+
+export interface ProcessingResult {
+  nodeId: string;
+  canvas: HTMLCanvasElement;
+  blob?: Blob;
+}
+
+export class PipelineEngine {
+  async execute(
+    source: HTMLCanvasElement,
+    nodes: PipelineNode[],
+    edges: PipelineEdge[]
+  ): Promise<Blob> {
+    const sorted = this.topologicalSort(nodes, edges);
+    let currentCanvas = source;
+
+    for (const node of sorted) {
+      if (!node.enabled) continue;
+      currentCanvas = await this.processNode(node, currentCanvas);
+    }
+
+    const exportNode = sorted.find((n) => n.type === "export");
+    const format = (exportNode?.data?.format as string) || "PNG";
+    const quality = (exportNode?.data?.quality as number) || 85;
+
+    return convertFormat(currentCanvas, format, quality);
+  }
+
+  private async processNode(
+    node: PipelineNode,
+    canvas: HTMLCanvasElement
+  ): Promise<HTMLCanvasElement> {
+    switch (node.type) {
+      case "resize":
+        return applyResize(canvas, node.data as any);
+      case "crop":
+        return applyCrop(canvas, node.data as any);
+      case "watermark":
+        return applyWatermark(canvas, node.data as any);
+      case "format":
+        return canvas;
+      case "compress":
+        return canvas;
+      case "rename":
+        return canvas;
+      case "load":
+        return canvas;
+      case "export":
+        return canvas;
+      default:
+        return canvas;
+    }
+  }
+
+  private topologicalSort(
+    nodes: PipelineNode[],
+    edges: PipelineEdge[]
+  ): PipelineNode[] {
+    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+    const inDegree = new Map<string, number>();
+    const adj = new Map<string, string[]>();
+
+    nodes.forEach((n) => {
+      inDegree.set(n.id, 0);
+      adj.set(n.id, []);
+    });
+
+    edges.forEach((e) => {
+      adj.get(e.source)?.push(e.target);
+      inDegree.set(e.target, (inDegree.get(e.target) || 0) + 1);
+    });
+
+    const queue: string[] = [];
+    inDegree.forEach((deg, id) => {
+      if (deg === 0) queue.push(id);
+    });
+
+    const result: PipelineNode[] = [];
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      const node = nodeMap.get(id);
+      if (node) result.push(node);
+      for (const neighbor of adj.get(id) || []) {
+        const newDeg = (inDegree.get(neighbor) || 1) - 1;
+        inDegree.set(neighbor, newDeg);
+        if (newDeg === 0) queue.push(neighbor);
+      }
+    }
+
+    return result;
+  }
+}
