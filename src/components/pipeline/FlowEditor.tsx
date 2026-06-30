@@ -1,4 +1,4 @@
-import { useCallback, useRef, type DragEvent } from "react";
+import { useCallback, useRef, useState, type DragEvent } from "react";
 import {
   ReactFlow,
   Background,
@@ -25,6 +25,8 @@ const defaultEdgeOptions = {
 export function FlowEditor() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const storeNodes = usePipelineStore((s) => s.nodes);
+  const storeEdges = usePipelineStore((s) => s.edges);
+  const selectedNodeId = usePipelineStore((s) => s.selectedNodeId);
   const addNode = usePipelineStore((s) => s.addNode);
   const addEdgeToStore = usePipelineStore((s) => s.addEdge);
   const removeNode = usePipelineStore((s) => s.removeNode);
@@ -32,17 +34,21 @@ export function FlowEditor() {
   const setSelectedNode = usePipelineStore((s) => s.setSelectedNode);
   const updateNodePosition = usePipelineStore((s) => s.updateNodePosition);
 
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+
   const flowNodes: Node[] = storeNodes.map((n) => ({
     id: n.id,
     type: n.type,
     position: n.position as XYPosition,
     data: { ...n.data, type: n.type, label: n.label },
+    selected: n.id === selectedNodeId,
   }));
 
-  const flowEdges: Edge[] = storeEdges().map((e) => ({
+  const flowEdges: Edge[] = storeEdges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
+    selected: e.id === selectedEdgeId,
   }));
 
   const onNodesChange: OnNodesChange = useCallback(
@@ -56,6 +62,7 @@ export function FlowEditor() {
         }
         if (change.type === "select") {
           setSelectedNode(change.selected ? change.id : null);
+          if (change.selected) setSelectedEdgeId(null);
         }
       }
     },
@@ -67,6 +74,10 @@ export function FlowEditor() {
       for (const change of changes) {
         if (change.type === "remove") {
           removeEdgeFromStore(change.id);
+          setSelectedEdgeId((prev) => prev === change.id ? null : prev);
+        }
+        if (change.type === "select") {
+          setSelectedEdgeId(change.selected ? change.id : null);
         }
       }
     },
@@ -116,7 +127,9 @@ export function FlowEditor() {
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
-        deleteKeyCode="Backspace"
+        edgesFocusable={true}
+        deleteKeyCode={["Backspace", "Delete"]}
+        onPaneClick={() => { setSelectedEdgeId(null); setSelectedNode(null); }}
         multiSelectionKeyCode="Control"
         selectionOnDrag
         panOnScroll
@@ -135,6 +148,3 @@ export function FlowEditor() {
   );
 }
 
-function storeEdges() {
-  return usePipelineStore.getState().edges;
-}

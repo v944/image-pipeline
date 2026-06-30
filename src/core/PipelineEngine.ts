@@ -13,11 +13,14 @@ export class PipelineEngine {
     nodes: PipelineNode[],
     edges: PipelineEdge[]
   ): Promise<Blob> {
-    const sorted = this.topologicalSort(nodes, edges);
+    const chain = this.findActiveChain(nodes, edges);
+    if (chain.length === 0) return convertFormat(source, "PNG", 85);
+
+    const sorted = this.topologicalSortNodes(chain, edges);
     let currentCanvas = source;
 
     for (const node of sorted) {
-      if (!node.enabled) continue;
+      if (!node.enabled || node.type === "load") continue;
       currentCanvas = await this.processNode(node, currentCanvas);
     }
 
@@ -26,6 +29,33 @@ export class PipelineEngine {
     const quality = (exportNode?.data?.quality as number) || 85;
 
     return convertFormat(currentCanvas, format, quality);
+  }
+
+  private findActiveChain(
+    nodes: PipelineNode[],
+    edges: PipelineEdge[]
+  ): PipelineNode[] {
+    const loadNodes = nodes.filter(
+      (n) => n.type === "load" && n.data?.fileId
+    );
+    if (loadNodes.length === 0) return [];
+
+    const adj = new Map<string, string[]>();
+    nodes.forEach((n) => adj.set(n.id, []));
+    edges.forEach((e) => adj.get(e.source)?.push(e.target));
+
+    const visited = new Set<string>();
+    for (const load of loadNodes) {
+      const queue = [load.id];
+      while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+        for (const next of adj.get(id) || []) queue.push(next);
+      }
+    }
+
+    return nodes.filter((n) => visited.has(n.id));
   }
 
   private async processNode(
@@ -54,7 +84,7 @@ export class PipelineEngine {
     }
   }
 
-  private topologicalSort(
+  private topologicalSortNodes(
     nodes: PipelineNode[],
     edges: PipelineEdge[]
   ): PipelineNode[] {

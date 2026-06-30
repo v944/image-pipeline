@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type DragEvent } from "react";
 import { Upload } from "lucide-react";
 import { useFilesStore } from "../../stores/files.store";
+import { useUserStore } from "../../stores/user.store";
 import { cn } from "../../lib";
 
 const ACCEPTED_TYPES = [
@@ -13,11 +14,15 @@ const ACCEPTED_TYPES = [
   "image/tiff",
 ];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const FREE_LIMIT = 10 * 1024 * 1024;
+const PRO_LIMIT = 500 * 1024 * 1024;
 
 export function FileUploader() {
   const addFiles = useFilesStore((s) => s.addFiles);
   const fileCount = useFilesStore((s) => s.files.length);
+  const plan = useUserStore((s) => s.plan);
+  const maxFileSize = plan === "free" ? FREE_LIMIT : PRO_LIMIT;
+  const limitLabel = plan === "free" ? "10MB" : "500MB";
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,8 +37,8 @@ export function FileUploader() {
           errors.push(`${file.name}: unsupported format`);
           continue;
         }
-        if (file.size > MAX_FILE_SIZE) {
-          errors.push(`${file.name}: exceeds 10MB limit`);
+        if (file.size > maxFileSize) {
+          errors.push(`${file.name}: exceeds ${limitLabel} limit`);
           continue;
         }
         valid.push(file);
@@ -44,7 +49,7 @@ export function FileUploader() {
         console.warn("File upload errors:", errors);
       }
     },
-    [addFiles]
+    [addFiles, maxFileSize, limitLabel]
   );
 
   const handleDrop = useCallback(
@@ -90,7 +95,7 @@ export function FileUploader() {
           Drop images here or click to browse
         </p>
         <p className="text-xs text-gray-600 mt-1">
-          JPG, PNG, WebP, AVIF, GIF — up to 10MB each
+          JPG, PNG, WebP, AVIF, GIF — up to {limitLabel} each
         </p>
         {fileCount > 0 && (
           <p className="text-xs text-amber-400 mt-2">{fileCount} files loaded</p>

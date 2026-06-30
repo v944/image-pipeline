@@ -40,6 +40,16 @@ body {
   display: none !important;
 }
 
+.react-flow__edge-path {
+  pointer-events: visibleStroke;
+  cursor: pointer;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #34D399 !important;
+  stroke-width: 3 !important;
+}
+
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   opacity: 0.5;

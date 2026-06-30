@@ -20,20 +20,23 @@ export function ProcessingModal() {
   const [results, setResults] = useState<{ name: string; blob: Blob }[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileErrors, setFileErrors] = useState<string[]>([]);
 
   const processImages = useCallback(async () => {
     if (files.length === 0) return;
     setProcessing(true);
     setError(null);
+    setFileErrors([]);
     setResults([]);
     setShowCompletion(false);
 
-    const pending = files.filter((f) => f.status !== "done");
+    const all = useFilesStore.getState().files;
+    all.forEach((f) => updateFileStatus(f.id, "pending"));
     const processed: { name: string; blob: Blob }[] = [];
     const engine = new PipelineEngine();
 
-    for (let i = 0; i < pending.length; i++) {
-      const file = pending[i];
+    for (let i = 0; i < all.length; i++) {
+      const file = all[i];
       updateFileStatus(file.id, "processing");
 
       try {
@@ -62,11 +65,12 @@ export function ProcessingModal() {
 
         updateFileStatus(file.id, "done");
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Processing failed";
-        updateFileStatus(file.id, "error", msg);
-      }
+          const msg = err instanceof Error ? err.message : "Processing failed";
+          setFileErrors((prev) => [...prev, `"${file.name}": ${msg}`]);
+          updateFileStatus(file.id, "error", msg);
+        }
 
-      setProgress(i + 1, pending.length);
+      setProgress(i + 1, all.length);
     }
 
     setResults(processed);
@@ -105,7 +109,6 @@ export function ProcessingModal() {
 
   if (!isProcessing && !showCompletion) return null;
 
-  const totalFiles = files.filter((f) => f.status !== "done").length;
   const doneFiles = results.length;
 
   return (
@@ -120,11 +123,11 @@ export function ProcessingModal() {
             <div className="w-full bg-white/5 rounded-full h-2 mb-2">
               <div
                 className="bg-amber-400 h-full rounded-full transition-all duration-300"
-                style={{ width: `${totalFiles > 0 ? (progress / totalFiles) * 100 : 0}%` }}
+                style={{ width: `${files.length > 0 ? (progress / files.length) * 100 : 0}%` }}
               />
             </div>
             <p className="text-xs text-gray-500">
-              {progress} of {totalFiles} files
+              {progress} of {files.length} files
             </p>
           </>
         )}
@@ -139,10 +142,17 @@ export function ProcessingModal() {
               </p>
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg mb-4">
-                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                <p className="text-xs text-red-300">{error}</p>
+            {(error || fileErrors.length > 0) && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg mb-4">
+                {error && (
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                    <p className="text-xs text-red-300">{error}</p>
+                  </div>
+                )}
+                {fileErrors.map((msg, i) => (
+                  <p key={i} className="text-xs text-red-300 mt-1">{msg}</p>
+                ))}
               </div>
             )}
 

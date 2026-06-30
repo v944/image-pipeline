@@ -43,7 +43,7 @@ function getDefaultNodeData(type: NodeType): Record<string, unknown> {
     case "export":
       return { format: "PNG", quality: 85, preserveMetadata: false };
     case "load":
-      return { includeSubfolders: false };
+      return { fileId: null, includeSubfolders: false };
     default:
       return {};
   }
