@@ -59,6 +59,16 @@ export function NodeSettings() {
               { value: "stretch", label: "Stretch" },
             ]}
           />
+          <SelectField
+            label="Algorithm"
+            value={node.data.algorithm as string}
+            onChange={(v) => handleChange("algorithm", v)}
+            options={[
+              { value: "auto", label: "Standard (Canvas)" },
+              { value: "lanczos", label: "Lanczos3 (Sharper)" },
+            ]}
+            hint="Lanczos3 recommended for upscaling"
+          />
         </>
       )}
 
@@ -498,15 +508,20 @@ function SelectField({
   value,
   onChange,
   options,
+  hint,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  hint?: string;
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-gray-400">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-medium text-gray-400">{label}</label>
+        {hint && <span className="text-[10px] text-gray-600">{hint}</span>}
+      </div>
       <select
         className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
         value={value}

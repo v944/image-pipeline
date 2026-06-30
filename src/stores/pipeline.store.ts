@@ -29,7 +29,7 @@ function generateNodeId(type: string): string {
 function getDefaultNodeData(type: NodeType): Record<string, unknown> {
   switch (type) {
     case "resize":
-      return { width: 1920, height: null, mode: "fit", keepAspectRatio: true };
+      return { width: 1920, height: null, mode: "fit", keepAspectRatio: true, algorithm: "auto" };
     case "crop":
       return { x: 0, y: 0, width: 1080, height: 1080, unit: "px" };
     case "compress":

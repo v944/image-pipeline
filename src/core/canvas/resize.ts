@@ -1,8 +1,11 @@
+import { applyLanczos } from "./enhance";
+
 interface ResizeSettings {
   width: number | null;
   height: number | null;
   mode: "fit" | "fill" | "stretch";
   keepAspectRatio: boolean;
+  algorithm?: "auto" | "lanczos";
 }
 
 export function applyResize(
@@ -40,6 +43,12 @@ export function applyResize(
   } else {
     dstW = srcW;
     dstH = srcH;
+  }
+
+  const useLanczos = settings.algorithm === "lanczos" && (dstW > srcW || dstH > srcH);
+
+  if (useLanczos) {
+    return applyLanczos(source, dstW, dstH, 3);
   }
 
   const canvas = document.createElement("canvas");
