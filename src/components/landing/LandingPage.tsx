@@ -31,7 +31,7 @@ export function LandingPage() {
       </header>
 
       <main>
-        <section className="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center">
+        <section className="max-w-6xl mx-auto px-6 pt-16 pb-8 text-center">
           <h1 className="text-5xl font-bold leading-tight mb-4">
             Batch image processing
             <br />
@@ -51,7 +51,7 @@ export function LandingPage() {
           </button>
         </section>
 
-        <section className="max-w-6xl mx-auto px-6 py-16">
+        <section className="max-w-6xl mx-auto px-6 py-8">
           <div className="grid grid-cols-3 gap-6">
             <FeatureCard
               icon={Zap}
@@ -71,9 +71,9 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-6 pt-16 pb-48 text-center border-t border-white/5">
-          <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
-          <p className="text-gray-400 mb-6">No signup required. Free for basic use.</p>
+        <section className="max-w-6xl mx-auto px-6 pt-8 pb-16 text-center border-t border-white/5">
+          <h2 className="text-2xl font-bold mb-3">Ready to get started?</h2>
+          <p className="text-gray-400 mb-4">No signup required. Free for basic use.</p>
           <button
             onClick={() => navigate("/editor")}
             className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-xl text-base font-medium transition-colors"
