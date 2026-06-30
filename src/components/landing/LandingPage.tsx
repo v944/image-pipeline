@@ -71,7 +71,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-6 pt-16 pb-32 text-center border-t border-white/5">
+        <section className="max-w-6xl mx-auto px-6 pt-16 pb-48 text-center border-t border-white/5">
           <h2 className="text-2xl font-bold mb-4">Ready to get started?</h2>
           <p className="text-gray-400 mb-6">No signup required. Free for basic use.</p>
           <button
