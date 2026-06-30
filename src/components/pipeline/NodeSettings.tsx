@@ -468,14 +468,15 @@ function FileSelectField({
   onChange: (v: string | null) => void;
 }) {
   const files = useFilesStore((s) => s.files);
+  const activeFiles = files.filter((f) => f.status !== "blocked");
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
   useEffect(() => {
-    if (value && !files.find((f) => f.id === value) && files.length > 0) {
-      onChangeRef.current(files[0].id);
+    if (value && !activeFiles.find((f) => f.id === value) && activeFiles.length > 0) {
+      onChangeRef.current(activeFiles[0].id);
     }
-  }, [files, value]);
+  }, [activeFiles, value]);
 
   return (
     <div className="space-y-1.5">
@@ -486,9 +487,9 @@ function FileSelectField({
         onChange={(e) => onChange(e.target.value || null)}
       >
         <option value="" className="bg-[#0D0D14]" disabled>
-          {files.length === 0 ? "No files uploaded" : "Select a file..."}
+          {activeFiles.length === 0 ? "No processable files" : "Select a file..."}
         </option>
-        {files.map((f) => (
+        {activeFiles.map((f) => (
           <option key={f.id} value={f.id} className="bg-[#0D0D14]">
             {f.name}
           </option>
