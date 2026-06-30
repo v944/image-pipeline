@@ -31,12 +31,13 @@ export function ProcessingModal() {
     setShowCompletion(false);
 
     const all = useFilesStore.getState().files;
-    all.forEach((f) => updateFileStatus(f.id, "pending"));
+    const toProcess = all.filter((f) => f.status !== "blocked");
+    toProcess.forEach((f) => updateFileStatus(f.id, "pending"));
     const processed: { name: string; blob: Blob }[] = [];
     const engine = new PipelineEngine();
 
-    for (let i = 0; i < all.length; i++) {
-      const file = all[i];
+    for (let i = 0; i < toProcess.length; i++) {
+      const file = toProcess[i];
       updateFileStatus(file.id, "processing");
 
       try {
@@ -70,7 +71,7 @@ export function ProcessingModal() {
           updateFileStatus(file.id, "error", msg);
         }
 
-      setProgress(i + 1, all.length);
+      setProgress(i + 1, toProcess.length);
     }
 
     setResults(processed);
@@ -109,6 +110,7 @@ export function ProcessingModal() {
 
   if (!isProcessing && !showCompletion) return null;
 
+  const nonBlockedCount = files.filter((f) => f.status !== "blocked").length;
   const doneFiles = results.length;
 
   return (
@@ -123,11 +125,11 @@ export function ProcessingModal() {
             <div className="w-full bg-white/5 rounded-full h-2 mb-2">
               <div
                 className="bg-amber-400 h-full rounded-full transition-all duration-300"
-                style={{ width: `${files.length > 0 ? (progress / files.length) * 100 : 0}%` }}
+                style={{ width: `${nonBlockedCount > 0 ? (progress / nonBlockedCount) * 100 : 0}%` }}
               />
             </div>
             <p className="text-xs text-gray-500">
-              {progress} of {files.length} files
+              {progress} of {nonBlockedCount} files
             </p>
           </>
         )}
