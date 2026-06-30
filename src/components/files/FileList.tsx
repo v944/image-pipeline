@@ -1,4 +1,4 @@
-import { Trash2, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { Trash2, CheckCircle2, Loader2, AlertCircle, Lock } from "lucide-react";
 import { useFilesStore } from "../../stores/files.store";
 
 export function FileList() {
@@ -25,7 +25,7 @@ export function FileList() {
         {files.map((file) => (
           <div
             key={file.id}
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 group transition-colors"
+            className={file.status === "blocked" ? "flex items-center gap-2 px-2 py-1.5 rounded-lg opacity-60" : "flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 group transition-colors"}
           >
             <div className="w-8 h-8 rounded overflow-hidden bg-white/5 flex-shrink-0">
               {file.previewUrl && (
@@ -41,6 +41,11 @@ export function FileList() {
               <div className="text-[10px] text-gray-500">
                 {(file.size / 1024 / 1024).toFixed(1)} MB
               </div>
+              {file.status === "blocked" && (
+                <div className="text-[10px] text-amber-500 mt-0.5">
+                  Upgrade to Pro — up to 500MB
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
               {file.status === "done" && (
@@ -52,9 +57,12 @@ export function FileList() {
               {file.status === "error" && (
                 <AlertCircle className="w-3.5 h-3.5 text-red-400" />
               )}
+              {file.status === "blocked" && (
+                <Lock className="w-3 h-3 text-amber-500/60" />
+              )}
               <button
                 onClick={() => removeFile(file.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                className={file.status === "blocked" ? "transition-opacity p-0.5" : "opacity-0 group-hover:opacity-100 transition-opacity p-0.5"}
               >
                 <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-400" />
               </button>

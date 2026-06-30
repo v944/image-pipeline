@@ -7,8 +7,9 @@ export interface ImageFile {
   type: string;
   file: File;
   blobUrl: string;
-  status: "pending" | "processing" | "done" | "error";
+  status: "pending" | "processing" | "done" | "error" | "blocked";
   error?: string;
+  blockReason?: string;
   previewUrl?: string;
   width?: number;
   height?: number;
@@ -16,7 +17,7 @@ export interface ImageFile {
 
 interface FilesState {
   files: ImageFile[];
-  addFiles: (files: File[]) => void;
+  addFiles: (files: File[], status?: "pending" | "blocked", blockReason?: string) => void;
   removeFile: (id: string) => void;
   clearFiles: () => void;
   updateFileStatus: (id: string, status: ImageFile["status"], error?: string) => void;
@@ -31,7 +32,7 @@ function generateFileId(): string {
 export const useFilesStore = create<FilesState>()((set, get) => ({
   files: [],
 
-  addFiles: (newFiles) => {
+  addFiles: (newFiles, status = "pending", blockReason) => {
     const existing = get().files;
     const toAdd: ImageFile[] = newFiles.map((file) => {
       const id = generateFileId();
@@ -43,7 +44,8 @@ export const useFilesStore = create<FilesState>()((set, get) => ({
         type: file.type,
         file,
         blobUrl,
-        status: "pending",
+        status,
+        blockReason: status === "blocked" ? blockReason ?? "file_size" : undefined,
         previewUrl: blobUrl,
       };
     });

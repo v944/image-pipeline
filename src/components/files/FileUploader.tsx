@@ -29,6 +29,7 @@ export function FileUploader() {
   const processFiles = useCallback(
     (fileList: FileList | File[]) => {
       const valid: File[] = [];
+      const oversized: File[] = [];
       const errors: string[] = [];
       const files = Array.from(fileList);
 
@@ -38,18 +39,19 @@ export function FileUploader() {
           continue;
         }
         if (file.size > maxFileSize) {
-          errors.push(`${file.name}: exceeds ${limitLabel} limit`);
+          oversized.push(file);
           continue;
         }
         valid.push(file);
       }
 
       if (valid.length > 0) addFiles(valid);
+      if (oversized.length > 0) addFiles(oversized, "blocked", "file_size");
       if (errors.length > 0) {
         console.warn("File upload errors:", errors);
       }
     },
-    [addFiles, maxFileSize, limitLabel]
+    [addFiles, maxFileSize]
   );
 
   const handleDrop = useCallback(

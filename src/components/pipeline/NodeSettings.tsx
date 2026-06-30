@@ -67,8 +67,15 @@ export function NodeSettings() {
               { value: "auto", label: "Standard (Canvas)" },
               { value: "lanczos", label: "Lanczos3 (Sharper)" },
             ]}
-            hint="Lanczos3 recommended for upscaling"
+            hint="Recommended for upscaling"
           />
+          {(node.data.algorithm as string) === "lanczos" && (
+            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <span className="text-amber-400 text-xs leading-relaxed flex-1">
+                Lanczos3 processes each pixel individually and may be noticeably slower on large images (&gt;5 MP).
+              </span>
+            </div>
+          )}
         </>
       )}
 
