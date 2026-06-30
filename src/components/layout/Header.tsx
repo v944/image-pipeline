@@ -1,4 +1,4 @@
-import { Play, Sparkles } from "lucide-react";
+import { Play, Sparkles, Ban } from "lucide-react";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useUIStore } from "../../stores/ui.store";
@@ -11,7 +11,9 @@ export function Header({ onProcess }: { onProcess: () => void }) {
   const isProcessing = useUIStore((s) => s.isProcessing);
   const plan = useUserStore((s) => s.plan);
 
-  const canProcess = files.length > 0 && nodes.length > 0 && !isProcessing;
+  const hasActiveFiles = files.some((f) => f.status !== "blocked");
+  const allBlocked = files.length > 0 && !hasActiveFiles;
+  const canProcess = hasActiveFiles && nodes.length > 0 && !isProcessing;
 
   return (
     <header className="h-14 flex items-center justify-between px-4 bg-[#111118] border-b border-white/5">
@@ -37,6 +39,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
         <button
           onClick={onProcess}
           disabled={!canProcess}
+          title={allBlocked ? "All files exceed the size limit" : undefined}
           className={cn(
             "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
             canProcess
@@ -44,7 +47,11 @@ export function Header({ onProcess }: { onProcess: () => void }) {
               : "bg-white/5 text-gray-500 cursor-not-allowed"
           )}
         >
-          <Play className="w-4 h-4" fill="currentColor" />
+          {allBlocked ? (
+            <Ban className="w-4 h-4" />
+          ) : (
+            <Play className="w-4 h-4" fill="currentColor" />
+          )}
           Process
         </button>
       </div>
