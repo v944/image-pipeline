@@ -30,12 +30,13 @@ export function FileUploader() {
     (fileList: FileList | File[]) => {
       const valid: File[] = [];
       const oversized: File[] = [];
-      const errors: string[] = [];
+      const unsupported: File[] = [];
       const files = Array.from(fileList);
 
       for (const file of files) {
-        if (!ACCEPTED_TYPES.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|webp|avif|gif|bmp|tiff)$/i)) {
-          errors.push(`${file.name}: unsupported format`);
+        const isImage = ACCEPTED_TYPES.includes(file.type) || file.name.match(/\.(jpg|jpeg|png|webp|avif|gif|bmp|tiff)$/i);
+        if (!isImage) {
+          unsupported.push(file);
           continue;
         }
         if (file.size > maxFileSize) {
@@ -47,9 +48,7 @@ export function FileUploader() {
 
       if (valid.length > 0) addFiles(valid);
       if (oversized.length > 0) addFiles(oversized, "blocked", "file_size");
-      if (errors.length > 0) {
-        console.warn("File upload errors:", errors);
-      }
+      if (unsupported.length > 0) addFiles(unsupported, "blocked", "unsupported_format");
     },
     [addFiles, maxFileSize]
   );

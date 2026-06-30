@@ -43,7 +43,7 @@ export function FileList() {
               </div>
               {file.status === "blocked" && (
                 <div className="text-[10px] text-amber-500 mt-0.5">
-                  Upgrade to Pro — up to 500MB
+                  {file.blockReason === "unsupported_format" ? "Unsupported format" : "Upgrade to Pro — up to 500MB"}
                 </div>
               )}
             </div>
@@ -57,8 +57,11 @@ export function FileList() {
               {file.status === "error" && (
                 <AlertCircle className="w-3.5 h-3.5 text-red-400" />
               )}
-              {file.status === "blocked" && (
+              {file.status === "blocked" && file.blockReason === "file_size" && (
                 <Lock className="w-3 h-3 text-amber-500/60" />
+              )}
+              {file.status === "blocked" && file.blockReason === "unsupported_format" && (
+                <AlertCircle className="w-3.5 h-3.5 text-amber-500/60" />
               )}
               <button
                 onClick={() => removeFile(file.id)}
