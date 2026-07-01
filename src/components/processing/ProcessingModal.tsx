@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Download, Loader2, CheckCircle2, AlertCircle, Lock } from "lucide-react";
+import { Download, Loader2, CheckCircle2, AlertCircle, Lock, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
@@ -157,6 +157,13 @@ export function ProcessingModal() {
                 className="px-4 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors"
               >
                 Close
+              </button>
+              <button
+                onClick={() => navigate("/faq")}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors mt-2"
+              >
+                <HelpCircle className="w-3 h-3 inline mr-1" />
+                How do limits work?
               </button>
             </div>
           </>

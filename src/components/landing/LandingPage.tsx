@@ -97,8 +97,8 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
           <span>Image Pipeline — Open source batch image processing</span>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-gray-300 transition-colors">GitHub</a>
-            <a href="#" className="hover:text-gray-300 transition-colors">Privacy</a>
+            <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">GitHub</a>
+            <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">FAQ</button>
           </div>
         </div>
       </footer>
