@@ -1,6 +1,6 @@
-import { kv } from "./_shared/kv";
-import { jsonResponse, errorResponse, corsResponse } from "./_shared/response";
-import { getClientIP } from "./_shared/ip";
+import { kv } from "./_shared/kv.js";
+import { jsonResponse, errorResponse, corsResponse } from "./_shared/response.js";
+import { getClientIP } from "./_shared/ip.js";
 
 const ALLOWED_EVENT_REGEX = /^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)*$/;
 const ALLOWED_PROPERTY_KEYS = new Set([
@@ -41,7 +41,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     let body: Record<string, unknown>;
     try {
-      body = await request.json();
+      body = await request.json() as Record<string, unknown>;
     } catch {
       return errorResponse("INVALID_JSON", "Invalid JSON body", 400);
     }

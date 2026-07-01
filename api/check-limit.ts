@@ -1,6 +1,6 @@
-import { kv } from "./_shared/kv";
-import { jsonResponse, errorResponse, corsResponse } from "./_shared/response";
-import { getClientIP } from "./_shared/ip";
+import { kv } from "./_shared/kv.js";
+import { jsonResponse, errorResponse, corsResponse } from "./_shared/response.js";
+import { getClientIP } from "./_shared/ip.js";
 
 const ALLOWED_LIMIT_TYPES = new Set(["files", "nodes", "batches", "format"]);
 

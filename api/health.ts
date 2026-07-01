@@ -1,5 +1,5 @@
-import { kv } from "./_shared/kv";
-import { jsonResponse, errorResponse, corsResponse } from "./_shared/response";
+import { kv } from "./_shared/kv.js";
+import { jsonResponse, errorResponse, corsResponse } from "./_shared/response.js";
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {

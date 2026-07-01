@@ -1,4 +1,4 @@
-import { jsonResponse, corsResponse } from "../_shared/response";
+import { jsonResponse, corsResponse } from "../_shared/response.js";
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") return corsResponse("GET, OPTIONS");

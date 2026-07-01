@@ -27,3 +27,4 @@ dist-ssr
 
 # Build artifacts
 *.tsbuildinfo
+.env*

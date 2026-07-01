@@ -1,6 +1,6 @@
-import { kv } from "../_shared/kv";
-import { jsonResponse, errorResponse, corsResponse } from "../_shared/response";
-import { getClientIP } from "../_shared/ip";
+import { kv } from "../_shared/kv.js";
+import { jsonResponse, errorResponse, corsResponse } from "../_shared/response.js";
+import { getClientIP } from "../_shared/ip.js";
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") {

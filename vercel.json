@@ -2,9 +2,6 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.ts": { "runtime": "edge", "maxDuration": 30 }
-  },
   "rewrites": [
     { "source": "/api/health", "destination": "/api/health.ts" },
     { "source": "/api/event", "destination": "/api/event.ts" },

@@ -1,4 +1,4 @@
-import type { ApiResponse } from "./types";
+import type { ApiResponse } from "./types.js";
 
 export function jsonResponse<T>(
   data: T,
@@ -13,7 +13,7 @@ export function jsonResponse<T>(
   };
 
   if (status >= 400) {
-    delete (body as Record<string, unknown>).data;
+    delete (body as unknown as Record<string, unknown>).data;
   }
 
   return new Response(JSON.stringify(body), {

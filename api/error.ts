@@ -1,4 +1,4 @@
-import { jsonResponse, errorResponse, corsResponse } from "./_shared/response";
+import { jsonResponse, errorResponse, corsResponse } from "./_shared/response.js";
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") return corsResponse("POST, OPTIONS");
@@ -9,7 +9,7 @@ export default async function handler(request: Request): Promise<Response> {
   try {
     let body: Record<string, unknown>;
     try {
-      body = await request.json();
+      body = await request.json() as Record<string, unknown>;
     } catch {
       return errorResponse("INVALID_JSON", "Invalid JSON body", 400);
     }
