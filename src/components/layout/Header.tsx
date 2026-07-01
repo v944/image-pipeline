@@ -4,6 +4,7 @@ import { usePipelineStore } from "../../stores/pipeline.store";
 import { useSavedPipelinesStore } from "../../stores/saved-pipelines.store";
 import { useUIStore } from "../../stores/ui.store";
 import { useUserStore } from "../../stores/user.store";
+import { UsageIndicator } from "./UsageIndicator";
 import { cn } from "../../lib";
 
 export function Header({ onProcess }: { onProcess: () => void }) {
@@ -95,6 +96,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
         >
           {plan === "free" ? "Free" : "Pro"}
         </span>
+        {plan === "free" && <UsageIndicator compact />}
 
         <button
           data-onboarding="process-btn"

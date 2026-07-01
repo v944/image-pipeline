@@ -1,13 +1,12 @@
-import { Layers, FileImage, Bookmark, Trash2, X, Zap } from "lucide-react";
+import { Layers, FileImage, Bookmark, Trash2, X } from "lucide-react";
 import { useUIStore } from "../../stores/ui.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useSavedPipelinesStore } from "../../stores/saved-pipelines.store";
-import { useUserStore } from "../../stores/user.store";
 import { NodePalette } from "../pipeline/NodePalette";
 import { FileUploader } from "../files/FileUploader";
 import { FileList } from "../files/FileList";
+import { UsageIndicator } from "./UsageIndicator";
 import { cn } from "../../lib";
-import { FREE_LIMITS } from "../../types";
 
 const TABS = [
   { id: "palette" as const, icon: Layers, label: "Nodes" },
@@ -122,38 +121,6 @@ function SavedPipelines() {
   );
 }
 
-function UsageIndicator() {
-  const plan = useUserStore((s) => s.plan);
-  const usage = useUserStore((s) => s.usage);
 
-  if (plan !== "free") return null;
-
-  const filesLimit = FREE_LIMITS.files;
-  const filesUsed = usage.filesProcessed;
-  const filesPct = Math.min(100, Math.round((filesUsed / filesLimit) * 100));
-
-  return (
-    <div className="px-3 pb-1">
-      <div className="bg-white/[0.03] rounded-lg px-3 py-2 border border-white/5">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-            <Zap className="w-3 h-3 text-amber-400" />
-            Free tier usage
-          </div>
-          <span className="text-[11px] text-gray-500">{filesUsed}/{filesLimit} files</span>
-        </div>
-        <div className="w-full bg-white/5 rounded-full h-1.5">
-          <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${filesPct}%`,
-              backgroundColor: filesPct >= 100 ? "#ef4444" : filesPct >= 80 ? "#f59e0b" : "#22c55e",
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 
