@@ -31,6 +31,9 @@ dist-ssr
 # Local secrets
 _kv_sec.txt
 
+# Domain setup guide
+imagepipeline_domain_setup.md
+
 # Original design assets (root level)
 Logo_IP.png
 
