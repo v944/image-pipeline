@@ -1,3 +1,5 @@
+declare var process: { env: Record<string, string | undefined> };
+
 import { kv } from "../_shared/kv.js";
 import { jsonResponse, errorResponse, corsResponse } from "../_shared/response.js";
 import { getClientIP } from "../_shared/ip.js";

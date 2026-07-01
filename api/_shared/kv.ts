@@ -1,3 +1,5 @@
+declare var process: { env: Record<string, string | undefined> };
+
 const KV_URL = process.env.KV_REST_API_URL!;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN!;
 

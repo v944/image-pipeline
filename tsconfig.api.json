@@ -16,6 +16,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["api/**/*.ts"],
+  "include": ["api/**/*.ts", "api/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

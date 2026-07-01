@@ -1,3 +1,5 @@
+declare var process: { env: Record<string, string | undefined> };
+
 import { jsonResponse, corsResponse } from "../_shared/response.js";
 
 export default async function handler(request: Request): Promise<Response> {

@@ -1,3 +1,5 @@
+declare var process: { env: Record<string, string | undefined> };
+
 import type { ApiResponse } from "./types.js";
 
 export function jsonResponse<T>(
