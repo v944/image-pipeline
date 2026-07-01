@@ -25,6 +25,55 @@ flowchart LR
 
 ---
 
+## Live Deployment
+
+| | |
+|---|---|
+| **URL** | `https://image-pipeline-six.vercel.app` |
+| **KV** | Upstash Redis (Vercel KV, Free tier, `iad1`) |
+| **Status** | ✅ All 9 API endpoints operational |
+
+---
+
+## Environment Variables (Production)
+
+| Variable | Set | Source |
+|----------|-----|--------|
+| `KV_REST_API_URL` | ✅ | Upstash KV integration |
+| `KV_REST_API_TOKEN` | ✅ | Upstash KV integration |
+| `APP_URL` | ✅ | `https://image-pipeline-six.vercel.app` |
+| `USDT_ADDRESS` | ✅ | `TPenBbjw2BE1zBMot2kKrNuGgYdbPvQwDr` |
+| `USDT_CONTRACT` | ✅ | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` |
+| `CRON_SECRET` | ✅ | Auto-generated |
+
+---
+
+## Recent Fixes & Changes
+
+### Code Review (7 critical + 9 warning)
+- **Edge functions** (14 files): health, event, check-limit, crypto/verify, crypto/config, pipeline/share, pipeline/[shareId], error, cleanup + shared helpers
+- **Stripe → Crypto**: replaced Stripe SDK with USDT TRC-20 via TronScan API (no npm deps, no webhooks)
+- **Cycle detection**: `PipelineEngine` throws on cyclic graphs with node names in error
+- **Compress/Format fix**: nodes now apply real canvas operations (were no-ops)
+- **Zero-dimension crop**: `applyCrop` throws `"empty crop region"`
+- **Subscribe leak**: `EditorLayout` returns `unsub` in `useEffect` cleanup
+- **Interval leak**: `useVerifyTrc20` has cleanup + double-start guard
+- **Path traversal**: `sanitizeFilename` uses `while` loop for recursive `..` removal
+- **Blob URL lifecycle**: `ProcessingModal` uses `file.file` directly (no fetch)
+- **Blob URL cleanup**: `removeFile`/`clearFiles` call `URL.revokeObjectURL`
+- **strict mode**: `tsconfig.app.json` — `"strict": true`
+- **HSTS**: added `Strict-Transport-Security` header
+- **Accessible UI**: NodePalette/FileList `aria-label`, `role="listbox"`, proper heading hierarchy
+- **RightSidebar**: removed dead component
+- **jsdom**: removed from `package.json` (not used)
+
+### Build Fixes
+- **`.js` extensions**: added to all relative imports in `api/` — Vercel edge requires explicit extensions
+- **`process.env` declare**: TypeScript 6.0.3 on Vercel doesn't have Node types — added `declare` in each API file
+- **`functions.runtime` removed**: `vercel.json` `"runtime": "edge"` caused build failures — Vercel auto-detects edge functions
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -258,6 +307,18 @@ Buy with Crypto → CryptoModal → GET /api/crypto/config
 
 ---
 
+## Changelog
+
+| Commit | Description |
+|--------|-------------|
+| `003cf1b` | declare `process` in API files to suppress TS errors |
+| `020593c` | remove leaked `_kv_sec.txt`, add to `.gitignore` |
+| `aeba2fd` | add `.js` extensions to API imports for Vercel edge |
+| `62df1cc` | backend edge functions + crypto payments + code review fixes |
+| (prior) | Initial setup with SPA, pipeline engine, Zustand stores, tests |
+
+---
+
 ## Testing
 
 46 tests across 2 files:
@@ -273,21 +334,33 @@ Run: `npm run test`
 
 ## Deployment
 
-```bash
-# Prerequisites
-vercel kv create image-pipeline-kv
-vercel env add KV_REST_API_URL
-vercel env add KV_REST_API_TOKEN
-vercel env add APP_URL
-vercel env add USDT_ADDRESS      # TRC-20 USDT recipient address
-vercel env add USDT_CONTRACT     # TRC-20 USDT contract address
-vercel env add CRON_SECRET       # For /api/cleanup auth
+### Prerequisites
 
-# Deploy
+1. Vercel project (Hobby plan or above)
+2. Vercel KV (Upstash Redis) — add via Dashboard → Storage → Upstash for Redis
+3. Env vars — set via Dashboard or CLI:
+
+```bash
+vercel env add KV_REST_API_URL production --value "<url>"
+vercel env add KV_REST_API_TOKEN production --value "<token>"
+vercel env add APP_URL production --value "https://image-pipeline-six.vercel.app"
+vercel env add USDT_ADDRESS production --value "<trc20-wallet>"
+vercel env add USDT_CONTRACT production --value "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+vercel env add CRON_SECRET production --value "<secret>"
+```
+
+### Deploy
+
+```bash
 vercel --prod
 ```
 
-No `stripe` or `zod` npm packages — edge functions use raw `fetch` + REST API to keep bundle under 1MB limit.
+### Build Notes
+
+- **No `stripe` or `zod`** — edge functions use raw `fetch` + REST API to keep under 1MB bundle limit
+- **No `functions.runtime`** in `vercel.json` — Vercel auto-detects edge functions from the `api/` directory
+- **`.js` extensions required** for all relative imports in edge function files
+- **`process.env`** needs explicit `declare var process` in each file (Vercel build TS doesn't include Node types)
 
 ---
 
