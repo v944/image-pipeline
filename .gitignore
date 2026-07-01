@@ -31,6 +31,9 @@ dist-ssr
 # Local secrets
 _kv_sec.txt
 
+# Original design assets (root level)
+Logo_IP.png
+
 # Local docs (full architecture tracking, not for repo)
 README.md
 .env*
