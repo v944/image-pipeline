@@ -7,6 +7,7 @@ export const nodeTypes = {
   compress: BaseNode,
   format: BaseNode,
   watermark: BaseNode,
+  denoise: BaseNode,
   rename: BaseNode,
   export: BaseNode,
 };

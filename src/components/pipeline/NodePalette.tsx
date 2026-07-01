@@ -9,6 +9,7 @@ const PALETTE_ITEMS: { type: NodeType; icon: string; label: string; description:
   { type: "compress", icon: "📦", label: "Compress", description: "Reduce file size" },
   { type: "format", icon: "🔄", label: "Format", description: "Convert format" },
   { type: "watermark", icon: "©", label: "Watermark", description: "Add text overlay" },
+  { type: "denoise", icon: "🧹", label: "Denoise", description: "Reduce image noise" },
   { type: "rename", icon: "✏️", label: "Rename", description: "Rename output files" },
   { type: "export", icon: "💾", label: "Export", description: "Output settings" },
 ];

@@ -10,6 +10,7 @@ const NODE_ICONS: Record<string, string> = {
   compress: "📦",
   format: "🔄",
   watermark: "©",
+  denoise: "🧹",
   rename: "✏️",
   export: "💾",
 };
@@ -21,6 +22,7 @@ const NODE_COLORS: Record<string, string> = {
   compress: "border-yellow-500/50 bg-yellow-500/10",
   format: "border-cyan-500/50 bg-cyan-500/10",
   watermark: "border-pink-500/50 bg-pink-500/10",
+  denoise: "border-indigo-500/50 bg-indigo-500/10",
   rename: "border-orange-500/50 bg-orange-500/10",
   export: "border-red-500/50 bg-red-500/10",
 };

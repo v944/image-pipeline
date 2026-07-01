@@ -1,3 +1,5 @@
+import { sanitizeWatermarkText } from "../../lib/sanitize";
+
 interface WatermarkSettings {
   text: string;
   position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
@@ -18,12 +20,13 @@ export function applyWatermark(
 
   ctx.drawImage(source, 0, 0);
 
+  const text = sanitizeWatermarkText(settings.text);
   const padding = 20;
   ctx.globalAlpha = settings.opacity;
   ctx.fillStyle = settings.color || "#FFFFFF";
   ctx.font = `${settings.fontSize}px sans-serif`;
 
-  const metrics = ctx.measureText(settings.text);
+  const metrics = ctx.measureText(text);
   const textWidth = metrics.width;
   const textHeight = settings.fontSize;
 
@@ -56,7 +59,7 @@ export function applyWatermark(
       y = canvas.height - padding;
   }
 
-  ctx.fillText(settings.text, x, y);
+  ctx.fillText(text, x, y);
   ctx.globalAlpha = 1;
   return canvas;
 }

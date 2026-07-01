@@ -1,11 +1,20 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { type PipelineNode, type PipelineEdge, type NodeType } from "../types";
+import { sanitizeData } from "../lib/sanitize";
+
+interface Snapshot {
+  nodes: PipelineNode[];
+  edges: PipelineEdge[];
+  selectedNodeId: string | null;
+}
 
 interface PipelineState {
   nodes: PipelineNode[];
   edges: PipelineEdge[];
   selectedNodeId: string | null;
+  past: Snapshot[];
+  future: Snapshot[];
 
   addNode: (type: NodeType, position: { x: number; y: number }) => void;
   removeNode: (id: string) => void;
@@ -18,6 +27,8 @@ interface PipelineState {
   loadPipeline: (nodes: PipelineNode[], edges: PipelineEdge[]) => void;
   setNodes: (nodes: PipelineNode[]) => void;
   setEdges: (edges: PipelineEdge[]) => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 let nodeCounter = 0;
@@ -42,6 +53,8 @@ function getDefaultNodeData(type: NodeType): Record<string, unknown> {
       return { pattern: "{original}_{index}", extension: "keep" };
     case "export":
       return { format: "PNG", quality: 85, preserveMetadata: false };
+    case "denoise":
+      return { method: "median", strength: 2, radius: 3 };
     case "load":
       return { fileId: null, includeSubfolders: false };
     default:
@@ -60,37 +73,61 @@ function createNode(type: NodeType, position: { x: number; y: number }): Pipelin
   };
 }
 
+let lastSnapshotTime = 0;
+const MIN_SNAPSHOT_INTERVAL = 300;
+
+function snapshot(get: () => PipelineState): { past: Snapshot[]; future: [] } {
+  const now = Date.now();
+  if (now - lastSnapshotTime < MIN_SNAPSHOT_INTERVAL) {
+    return { past: get().past, future: [] };
+  }
+  lastSnapshotTime = now;
+  const { nodes, edges, selectedNodeId, past } = get();
+  return {
+    past: [...past, { nodes: structuredClone(nodes), edges: structuredClone(edges), selectedNodeId }],
+    future: [],
+  };
+}
+
 export const usePipelineStore = create<PipelineState>()(
   persist(
     (set, get) => ({
       nodes: [],
       edges: [],
       selectedNodeId: null,
+      past: [],
+      future: [],
 
       addNode: (type, position) => {
+        const s = snapshot(get);
         const node = createNode(type, position);
-        set((s) => ({ nodes: [...s.nodes, node] }));
+        set({ ...s, nodes: [...get().nodes, node] });
       },
 
       removeNode: (id) => {
-        set((s) => ({
-          nodes: s.nodes.filter((n) => n.id !== id),
-          edges: s.edges.filter((e) => e.source !== id && e.target !== id),
-          selectedNodeId: s.selectedNodeId === id ? null : s.selectedNodeId,
+        const s = snapshot(get);
+        set((cur) => ({
+          ...s,
+          nodes: cur.nodes.filter((n) => n.id !== id),
+          edges: cur.edges.filter((e) => e.source !== id && e.target !== id),
+          selectedNodeId: cur.selectedNodeId === id ? null : cur.selectedNodeId,
         }));
       },
 
       updateNodeData: (id, data) => {
-        set((s) => ({
-          nodes: s.nodes.map((n) =>
-            n.id === id ? { ...n, data: { ...n.data, ...data } } : n
+        const s = snapshot(get);
+        const clean = sanitizeData(data);
+        set((cur) => ({
+          ...s,
+          nodes: cur.nodes.map((n) =>
+            n.id === id ? { ...n, data: { ...n.data, ...clean } } : n
           ),
         }));
       },
 
       updateNodePosition: (id, position) => {
-        set((s) => ({
-          nodes: s.nodes.map((n) =>
+        set((cur) => ({
+          nodes: cur.nodes.map((n) =>
             n.id === id ? { ...n, position } : n
           ),
         }));
@@ -99,28 +136,62 @@ export const usePipelineStore = create<PipelineState>()(
       setSelectedNode: (id) => set({ selectedNodeId: id }),
 
       addEdge: (source, target) => {
-        const exists = get().edges.some(
-          (e) => e.source === source && e.target === target
-        );
-        if (exists) return;
-        const edge: PipelineEdge = {
-          id: `edge-${source}-${target}`,
-          source,
-          target,
-        };
-        set((s) => ({ edges: [...s.edges, edge] }));
+        if (get().edges.some((e) => e.source === source && e.target === target)) return;
+        const s = snapshot(get);
+        const edge: PipelineEdge = { id: `edge-${source}-${target}`, source, target };
+        set({ ...s, edges: [...get().edges, edge] });
       },
 
       removeEdge: (id) => {
-        set((s) => ({ edges: s.edges.filter((e) => e.id !== id) }));
+        const s = snapshot(get);
+        set((cur) => ({ ...s, edges: cur.edges.filter((e) => e.id !== id) }));
       },
 
-      resetPipeline: () => set({ nodes: [], edges: [], selectedNodeId: null }),
+      resetPipeline: () => {
+        const s = snapshot(get);
+        set({ ...s, nodes: [], edges: [], selectedNodeId: null });
+      },
 
-      loadPipeline: (nodes, edges) => set({ nodes, edges }),
+      loadPipeline: (nodes, edges) => {
+        const s = snapshot(get);
+        set({ ...s, nodes: structuredClone(nodes), edges: structuredClone(edges) });
+      },
 
-      setNodes: (nodes) => set({ nodes }),
-      setEdges: (edges) => set({ edges }),
+      setNodes: (nodes) => {
+        const s = snapshot(get);
+        set({ ...s, nodes });
+      },
+
+      setEdges: (edges) => {
+        const s = snapshot(get);
+        set({ ...s, edges });
+      },
+
+      undo: () => {
+        const { past, nodes, edges, selectedNodeId } = get();
+        if (past.length === 0) return;
+        const prev = past[past.length - 1];
+        set({
+          past: past.slice(0, -1),
+          future: [{ nodes: structuredClone(nodes), edges: structuredClone(edges), selectedNodeId }, ...get().future],
+          nodes: prev.nodes,
+          edges: prev.edges,
+          selectedNodeId: prev.selectedNodeId,
+        });
+      },
+
+      redo: () => {
+        const { future, nodes, edges, selectedNodeId } = get();
+        if (future.length === 0) return;
+        const next = future[0];
+        set({
+          future: future.slice(1),
+          past: [...get().past, { nodes: structuredClone(nodes), edges: structuredClone(edges), selectedNodeId }],
+          nodes: next.nodes,
+          edges: next.edges,
+          selectedNodeId: next.selectedNodeId,
+        });
+      },
     }),
     {
       name: "image-pipeline-v1",

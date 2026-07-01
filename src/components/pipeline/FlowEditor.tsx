@@ -115,7 +115,7 @@ export function FlowEditor() {
   );
 
   return (
-    <div ref={reactFlowWrapper} className="w-full h-full">
+    <div ref={reactFlowWrapper} className="w-full h-full" data-onboarding="canvas">
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}

@@ -6,6 +6,7 @@ export type NodeType =
   | "format"
   | "watermark"
   | "rename"
+  | "denoise"
   | "export";
 
 export interface PipelineNode {

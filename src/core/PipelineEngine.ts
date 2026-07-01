@@ -1,4 +1,4 @@
-import { applyResize, applyCrop, applyWatermark, convertFormat } from "./canvas";
+import { applyResize, applyCrop, applyWatermark, applyDenoise, convertFormat } from "./canvas";
 import type { PipelineNode, PipelineEdge } from "../types";
 
 export interface ProcessingResult {
@@ -73,6 +73,8 @@ export class PipelineEngine {
         return canvas;
       case "compress":
         return canvas;
+      case "denoise":
+        return applyDenoise(canvas, node.data as any);
       case "rename":
         return canvas;
       case "load":

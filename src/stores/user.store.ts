@@ -5,12 +5,14 @@ import type { PlanTier } from "../types";
 interface UserState {
   plan: PlanTier;
   sessionId: string;
+  proExpiresAt: string | null;
   usage: {
     filesProcessed: number;
     batchesProcessed: number;
   };
 
   setPlan: (plan: PlanTier) => void;
+  activatePro: (durationMonths: number) => void;
   incrementUsage: (files: number) => void;
   resetUsage: () => void;
 }
@@ -24,9 +26,16 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       plan: "free",
       sessionId: generateSessionId(),
+      proExpiresAt: null,
       usage: { filesProcessed: 0, batchesProcessed: 0 },
 
       setPlan: (plan) => set({ plan }),
+
+      activatePro: (durationMonths) => {
+        const now = new Date();
+        now.setMonth(now.getMonth() + durationMonths);
+        set({ plan: "pro", proExpiresAt: now.toISOString() });
+      },
 
       incrementUsage: (files) =>
         set((s) => ({
@@ -44,6 +53,7 @@ export const useUserStore = create<UserState>()(
       partialize: (state) => ({
         plan: state.plan,
         sessionId: state.sessionId,
+        proExpiresAt: state.proExpiresAt,
       }),
     }
   )

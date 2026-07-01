@@ -1,15 +1,16 @@
-import { ArrowRight, Sparkles, Shield, Zap, Layers } from "lucide-react";
+import { ArrowRight, Shield, Zap, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PricingPage } from "../pricing/PricingPage";
 
 export function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0D0D14] text-gray-100">
+    <div className="min-h-screen bg-[#0D0D14] text-gray-100 overflow-y-auto">
       <header className="border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
+            <img src="/logo.png" alt="Image Pipeline" className="w-10 h-10" />
             <span className="font-bold">Image Pipeline</span>
           </div>
           <div className="flex items-center gap-4">
@@ -18,6 +19,12 @@ export function LandingPage() {
               className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
             >
               Editor
+            </button>
+            <button
+              onClick={() => navigate("/pricing")}
+              className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
+            >
+              Pricing
             </button>
             <button
               onClick={() => navigate("/editor")}
@@ -70,6 +77,8 @@ export function LandingPage() {
             />
           </div>
         </section>
+
+        <PricingPage />
 
         <section className="max-w-6xl mx-auto px-6 pt-8 pb-16 text-center border-t border-white/5">
           <h2 className="text-2xl font-bold mb-3">Ready to get started?</h2>

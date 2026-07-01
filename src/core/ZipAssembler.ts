@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import ZipWorker from "./zip-worker?worker";
 
 export interface ZipEntry {
   name: string;
@@ -19,26 +20,7 @@ export class ZipAssembler {
       return this.assemble(entries);
     }
     return new Promise((resolve, reject) => {
-      const worker = new Worker(
-        URL.createObjectURL(
-          new Blob(
-            [
-              `
-              importScripts("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
-              self.onmessage = async function(e) {
-                const zip = new JSZip();
-                for (const entry of e.data) {
-                  zip.file(entry.name, entry.blob);
-                }
-                const blob = await zip.generateAsync({ type: "blob", compression: "STORE" });
-                self.postMessage(blob);
-              };
-            `,
-            ],
-            { type: "application/javascript" }
-          )
-        )
-      );
+      const worker = new ZipWorker();
       worker.onmessage = (e) => {
         resolve(e.data);
         worker.terminate();

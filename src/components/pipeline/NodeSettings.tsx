@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useFilesStore } from "../../stores/files.store";
+import { DenoisePreview } from "./DenoisePreview";
 
 interface Size { w: number; h: number }
 
@@ -217,13 +218,55 @@ export function NodeSettings() {
         </>
       )}
 
+      {node.type === "denoise" && (
+        <>
+          <DenoisePreview
+            method={node.data.method as string}
+            strength={node.data.strength as number}
+            radius={node.data.radius as number}
+          />
+          <SelectField
+            label="Method"
+            value={node.data.method as string}
+            onChange={(v) => handleChange("method", v)}
+            options={[
+              { value: "median", label: "Median Filter" },
+              { value: "bilateral", label: "Bilateral Filter" },
+            ]}
+            hint="Median is faster, bilateral preserves edges"
+          />
+          <Field label="Strength" hint="1-10">
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              className="w-full accent-amber-500"
+              value={(node.data.strength as number) || 2}
+              onChange={(e) => handleChange("strength", Number(e.target.value))}
+            />
+          </Field>
+          <Field label="Radius" hint="1-10">
+            <input
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              className="w-full accent-amber-500"
+              value={(node.data.radius as number) || 3}
+              onChange={(e) => handleChange("radius", Number(e.target.value))}
+            />
+          </Field>
+        </>
+      )}
+
       {node.type === "rename" && (
         <Field label="Pattern" hint="{original}_{index}">
           <input
             type="text"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono"
             value={(node.data.pattern as string) || "{original}_{index}"}
-            onChange={(e) => handleChange("pattern", e.target.value)}
+            onChange={(e) => handleChange("pattern", e.target.value.replace(/[<>]/g, ""))}
           />
         </Field>
       )}
