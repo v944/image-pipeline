@@ -1,62 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
-const TRONSCAN_API = "https://apilist.tronscan.org/api/transaction";
+type VerifyStatus = "idle" | "checking" | "verified" | "not-found" | "error";
 
-interface Trc20Transfer {
-  to_address: string;
-  amount_str: string;
-  transaction_id: string;
-  block_ts: number;
-}
-
-interface TronscanResponse {
-  data: {
-    trc20Transfers?: Trc20Transfer[];
-  }[];
-}
-
-export function useVerifyTrc20(
-  address: string,
-  minAmountUsdt: number
-) {
-  const [status, setStatus] = useState<"idle" | "checking" | "verified" | "not-found">("idle");
+export function useVerifyTrc20(_address: string, minAmountUsdt: number) {
+  const [status, setStatus] = useState<VerifyStatus>("idle");
+  const [message, setMessage] = useState("");
+  const [txId, setTxId] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const startChecking = () => {
-    setStatus("checking");
-
-    const check = async () => {
-      try {
-        const url = `${TRONSCAN_API}?sort=-timestamp&limit=20&address=${address}&start_timestamp=${Date.now() - 180_000}`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const json: TronscanResponse = await res.json();
-
-        const amountWei = (minAmountUsdt * 1_000_000).toString();
-
-        for (const item of json.data || []) {
-          const transfers = item.trc20Transfers || [];
-          for (const tx of transfers) {
-            if (
-              tx.to_address.toLowerCase() === address.toLowerCase() &&
-              parseInt(tx.amount_str) >= parseInt(amountWei)
-            ) {
-              setStatus("verified");
-              if (intervalRef.current) clearInterval(intervalRef.current);
-              return;
-            }
-          }
-        }
-
-        setStatus("not-found");
-      } catch {
-        setStatus("not-found");
-      }
-    };
-
-    check();
-    intervalRef.current = setInterval(check, 10_000);
-  };
+  const sessionIdRef = useRef("");
 
   useEffect(() => {
     return () => {
@@ -64,5 +15,66 @@ export function useVerifyTrc20(
     };
   }, []);
 
-  return { status, startChecking };
+  const startChecking = useCallback((sessionId: string, transactionId: string) => {
+    if (!transactionId || transactionId.length !== 64) {
+      setStatus("error");
+      setMessage("Please enter a valid transaction ID (64 hex characters)");
+      return;
+    }
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    setTxId(transactionId);
+    sessionIdRef.current = sessionId;
+
+    const verify = async () => {
+      try {
+        const res = await fetch("/api/crypto/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId,
+            txId: transactionId,
+            expectedAmount: minAmountUsdt,
+          }),
+        });
+
+        const data = await res.json() as { success: boolean; data?: { verified: boolean; message: string; plan?: string }; error?: { message: string } };
+
+        if (!data.success || !data.data) {
+          setStatus("error");
+          setMessage(data.error?.message || "Verification failed. Try again.");
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          return;
+        }
+
+        if (data.data.verified) {
+          setStatus("verified");
+          setMessage(data.data.message || "Payment confirmed!");
+          if (intervalRef.current) clearInterval(intervalRef.current);
+        } else {
+          setStatus("not-found");
+          setMessage(data.data.message || "Transaction not found. Check the TxID and try again.");
+          if (intervalRef.current) clearInterval(intervalRef.current);
+        }
+      } catch {
+        setStatus("error");
+        setMessage("Could not reach verification service. Check your connection and try again.");
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      }
+    };
+
+    setStatus("checking");
+    verify();
+    intervalRef.current = setInterval(verify, 15_000);
+  }, [minAmountUsdt]);
+
+  const reset = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setStatus("idle");
+    setMessage("");
+    setTxId("");
+  }, []);
+
+  return { status, message, txId, startChecking, reset };
 }

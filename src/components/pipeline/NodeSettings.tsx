@@ -311,14 +311,17 @@ export function NodeSettings() {
 function findUpstreamLoadNode(
   nodeId: string,
   nodes: { id: string; type: string; data: Record<string, unknown> }[],
-  edges: { source: string; target: string }[]
+  edges: { source: string; target: string }[],
+  visited = new Set<string>()
 ): { id: string; data: Record<string, unknown> } | null {
+  if (visited.has(nodeId)) return null;
+  visited.add(nodeId);
   const incoming = edges.filter((e) => e.target === nodeId);
   for (const edge of incoming) {
     const src = nodes.find((n) => n.id === edge.source);
     if (!src) continue;
     if (src.type === "load") return src;
-    const found = findUpstreamLoadNode(src.id, nodes, edges);
+    const found = findUpstreamLoadNode(src.id, nodes, edges, visited);
     if (found) return found;
   }
   return null;

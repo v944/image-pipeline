@@ -1,9 +1,9 @@
 export function sanitizeFilename(name: string): string {
-  return name
-    .replace(/\0/g, "")
-    .replace(/[<>:"/\\|?*]/g, "_")
-    .replace(/\.\./g, "")
-    .trim();
+  let result = name.replace(/\0/g, "").replace(/[<>:"/\\|?*]/g, "_");
+  while (result.includes("..")) {
+    result = result.replace(/\.\.\/?/g, "");
+  }
+  return result.trim();
 }
 
 export function sanitizeWatermarkText(text: string): string {

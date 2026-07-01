@@ -27,6 +27,10 @@ export function applyCrop(
   cropW = Math.min(cropW, source.width - cropX);
   cropH = Math.min(cropH, source.height - cropY);
 
+  if (cropW < 1 || cropH < 1) {
+    throw new Error("Crop region is empty (zero width or height)");
+  }
+
   const canvas = document.createElement("canvas");
   canvas.width = cropW;
   canvas.height = cropH;

@@ -2,8 +2,25 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.ts": { "runtime": "edge", "maxDuration": 30 }
+  },
   "rewrites": [
+    { "source": "/api/health", "destination": "/api/health.ts" },
+    { "source": "/api/event", "destination": "/api/event.ts" },
+    { "source": "/api/check-limit", "destination": "/api/check-limit.ts" },
+    { "source": "/api/crypto/config", "destination": "/api/crypto/config.ts" },
+    { "source": "/api/crypto/verify", "destination": "/api/crypto/verify.ts" },
+    { "source": "/api/pipeline/share", "destination": "/api/pipeline/share.ts" },
+    { "source": "/api/pipeline/([^/]+)", "destination": "/api/pipeline/[shareId].ts" },
+    { "source": "/api/error", "destination": "/api/error.ts" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cleanup",
+      "schedule": "0 3 * * *"
+    }
   ],
   "headers": [
     {
@@ -12,6 +29,10 @@
         {
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-src 'none'; object-src 'none'"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
         },
         {
           "key": "X-Content-Type-Options",
@@ -24,6 +45,15 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
         }
       ]
     }

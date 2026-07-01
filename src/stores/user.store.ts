@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { PlanTier } from "../types";
+import { edgeClient } from "../lib/edge-client";
 
 interface UserState {
   plan: PlanTier;
@@ -12,9 +13,10 @@ interface UserState {
   };
 
   setPlan: (plan: PlanTier) => void;
-  activatePro: (durationMonths: number) => void;
   incrementUsage: (files: number) => void;
   resetUsage: () => void;
+  checkServerLimit: (limitType: string) => Promise<{ allowed: boolean; limit: number; resetAt: string | null }>;
+  syncPlanFromServer: () => Promise<void>;
 }
 
 function generateSessionId(): string {
@@ -23,19 +25,13 @@ function generateSessionId(): string {
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       plan: "free",
       sessionId: generateSessionId(),
       proExpiresAt: null,
       usage: { filesProcessed: 0, batchesProcessed: 0 },
 
       setPlan: (plan) => set({ plan }),
-
-      activatePro: (durationMonths) => {
-        const now = new Date();
-        now.setMonth(now.getMonth() + durationMonths);
-        set({ plan: "pro", proExpiresAt: now.toISOString() });
-      },
 
       incrementUsage: (files) =>
         set((s) => ({
@@ -46,6 +42,32 @@ export const useUserStore = create<UserState>()(
         })),
 
       resetUsage: () => set({ usage: { filesProcessed: 0, batchesProcessed: 0 } }),
+
+      checkServerLimit: async (limitType) => {
+        const { sessionId } = get();
+        try {
+          const result = await edgeClient.checkLimit(sessionId, limitType);
+          return {
+            allowed: result.allowed,
+            limit: result.limit,
+            resetAt: result.resetAt,
+          };
+        } catch {
+          return { allowed: true, limit: Infinity, resetAt: null };
+        }
+      },
+
+      syncPlanFromServer: async () => {
+        const { sessionId } = get();
+        try {
+          const result = await edgeClient.checkLimit(sessionId, "files");
+          if (result.tier === "pro" || result.tier === "lifetime") {
+            set({ plan: result.tier });
+          }
+        } catch {
+          /* fail-open: keep current plan */
+        }
+      },
     }),
     {
       name: "image-pipeline-user",

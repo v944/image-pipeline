@@ -7,6 +7,7 @@ import { FlowEditor } from "../pipeline/FlowEditor";
 import { ProcessingModal } from "../processing/ProcessingModal";
 import { useUIStore } from "../../stores/ui.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
+import { useUserStore } from "../../stores/user.store";
 import { NodeSettings } from "../pipeline/NodeSettings";
 import { OnboardingTour } from "../onboarding/OnboardingTour";
 import "../../index.css";
@@ -22,11 +23,14 @@ function EditorContent() {
     if (!onboardingCompleted) startOnboarding();
   }, []);
 
-  usePipelineStore.subscribe((state) => {
-    if (state.selectedNodeId) {
-      setRightSidebar("settings");
-    }
-  });
+  useEffect(() => {
+    const unsub = usePipelineStore.subscribe((state) => {
+      if (state.selectedNodeId) {
+        setRightSidebar("settings");
+      }
+    });
+    return unsub;
+  }, [setRightSidebar]);
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -72,6 +76,10 @@ function EditorContent() {
 }
 
 export function EditorLayout() {
+  useEffect(() => {
+    useUserStore.getState().syncPlanFromServer();
+  }, []);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {

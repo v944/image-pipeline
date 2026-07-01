@@ -1,13 +1,16 @@
 import { useState, useCallback, useEffect } from "react";
-import { Download, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Download, Loader2, CheckCircle2, AlertCircle, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useUIStore } from "../../stores/ui.store";
+import { useUserStore } from "../../stores/user.store";
 import { PipelineEngine } from "../../core/PipelineEngine";
 import { ZipAssembler } from "../../core/ZipAssembler";
 import { cn } from "../../lib";
 
 export function ProcessingModal() {
+  const navigate = useNavigate();
   const isProcessing = useUIStore((s) => s.isProcessing);
   const setProcessing = useUIStore((s) => s.setProcessing);
   const progress = useUIStore((s) => s.processingProgress);
@@ -16,22 +19,36 @@ export function ProcessingModal() {
   const updateFileStatus = useFilesStore((s) => s.updateFileStatus);
   const nodes = usePipelineStore((s) => s.nodes);
   const edges = usePipelineStore((s) => s.edges);
+  const checkServerLimit = useUserStore((s) => s.checkServerLimit);
+  const incrementUsage = useUserStore((s) => s.incrementUsage);
+  const plan = useUserStore((s) => s.plan);
 
   const [results, setResults] = useState<{ name: string; blob: Blob }[]>([]);
   const [showCompletion, setShowCompletion] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fileErrors, setFileErrors] = useState<string[]>([]);
+  const [limitBlocked, setLimitBlocked] = useState<{ limitType: string; resetAt: string | null } | null>(null);
 
   const processImages = useCallback(async () => {
     if (files.length === 0) return;
-    setProcessing(true);
     setError(null);
     setFileErrors([]);
     setResults([]);
     setShowCompletion(false);
+    setLimitBlocked(null);
 
     const all = useFilesStore.getState().files;
     const toProcess = all.filter((f) => f.status !== "blocked");
+    if (toProcess.length === 0) return;
+
+    const limitResult = await checkServerLimit("files");
+    if (!limitResult.allowed) {
+      setLimitBlocked({ limitType: "files", resetAt: limitResult.resetAt });
+      return;
+    }
+
+    setProcessing(true);
+
     toProcess.forEach((f) => updateFileStatus(f.id, "pending"));
     const processed: { name: string; blob: Blob }[] = [];
     const engine = new PipelineEngine();
@@ -42,8 +59,7 @@ export function ProcessingModal() {
 
       try {
         const img = new Image();
-        const blob = await fetch(file.blobUrl).then((r) => r.blob());
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(file.file);
         await new Promise<void>((resolve, reject) => {
           img.onload = () => resolve();
           img.onerror = () => reject(new Error("Failed to load image"));
@@ -66,10 +82,10 @@ export function ProcessingModal() {
 
         updateFileStatus(file.id, "done");
       } catch (err) {
-          const msg = err instanceof Error ? err.message : "Processing failed";
-          setFileErrors((prev) => [...prev, `"${file.name}": ${msg}`]);
-          updateFileStatus(file.id, "error", msg);
-        }
+        const msg = err instanceof Error ? err.message : "Processing failed";
+        setFileErrors((prev) => [...prev, `"${file.name}": ${msg}`]);
+        updateFileStatus(file.id, "error", msg);
+      }
 
       setProgress(i + 1, toProcess.length);
     }
@@ -77,7 +93,8 @@ export function ProcessingModal() {
     setResults(processed);
     setProcessing(false);
     setShowCompletion(true);
-  }, [files, nodes, edges, setProcessing, setProgress, updateFileStatus]);
+    incrementUsage(processed.length);
+  }, [files, nodes, edges, setProcessing, setProgress, updateFileStatus, checkServerLimit, incrementUsage]);
 
   useEffect(() => {
     const handler = () => processImages();
@@ -108,15 +125,44 @@ export function ProcessingModal() {
     }
   }, [results]);
 
-  if (!isProcessing && !showCompletion) return null;
-
   const nonBlockedCount = files.filter((f) => f.status !== "blocked").length;
-  const doneFiles = results.length;
+
+  if (!isProcessing && !showCompletion && !limitBlocked) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-[#111118] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        {isProcessing && (
+        {limitBlocked && (
+          <>
+            <div className="text-center mb-4">
+              <Lock className="w-12 h-12 text-amber-400 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-gray-100">Free Tier Limit Reached</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                {plan === "free" ? (
+                  <>You've used all {limitBlocked.limitType === "files" ? "10 file slots" : "your free limit"}{limitBlocked.resetAt ? <> — resets at {new Date(limitBlocked.resetAt).toLocaleTimeString()}</> : ""}. Upgrade to Pro for unlimited processing.</>
+                ) : (
+                  "Please try again later."
+                )}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate("/pricing")}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-black px-4 py-2.5 rounded-xl font-medium text-sm transition-colors"
+              >
+                Upgrade to Pro ($10 USDT)
+              </button>
+              <button
+                onClick={() => setLimitBlocked(null)}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        )}
+
+        {isProcessing && !limitBlocked && (
           <>
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
@@ -134,13 +180,13 @@ export function ProcessingModal() {
           </>
         )}
 
-        {showCompletion && (
+        {showCompletion && !limitBlocked && (
           <>
             <div className="text-center mb-4">
               <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-2" />
               <h3 className="text-lg font-semibold text-gray-100">Processing Complete</h3>
               <p className="text-sm text-gray-400 mt-1">
-                {doneFiles} file{doneFiles !== 1 ? "s" : ""} processed
+                {results.length} file{results.length !== 1 ? "s" : ""} processed
               </p>
             </div>
 
@@ -169,7 +215,7 @@ export function ProcessingModal() {
                 )}
               >
                 <Download className="w-4 h-4" />
-                Download ZIP ({doneFiles} files)
+                Download ZIP ({results.length} files)
               </button>
               <button
                 onClick={() => {

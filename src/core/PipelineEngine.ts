@@ -1,10 +1,27 @@
-import { applyResize, applyCrop, applyWatermark, applyDenoise, convertFormat } from "./canvas";
+import { applyResize, applyCrop, applyWatermark, applyDenoise, convertFormat, applyCompress } from "./canvas";
 import type { PipelineNode, PipelineEdge } from "../types";
 
 export interface ProcessingResult {
   nodeId: string;
   canvas: HTMLCanvasElement;
   blob?: Blob;
+}
+
+async function canvasFromBlob(blob: Blob): Promise<HTMLCanvasElement> {
+  const img = new Image();
+  const url = URL.createObjectURL(blob);
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("Failed to decode compressed image"));
+    img.src = url;
+  });
+  URL.revokeObjectURL(url);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0);
+  return canvas;
 }
 
 export class PipelineEngine {
@@ -69,10 +86,17 @@ export class PipelineEngine {
         return applyCrop(canvas, node.data as any);
       case "watermark":
         return applyWatermark(canvas, node.data as any);
-      case "format":
-        return canvas;
-      case "compress":
-        return canvas;
+      case "format": {
+        const fmt = (node.data?.targetFormat as string) || "PNG";
+        const q = (node.data?.quality as number) || 85;
+        const blob = await convertFormat(canvas, fmt, q);
+        return canvasFromBlob(blob);
+      }
+      case "compress": {
+        const q = (node.data?.quality as number) || 85;
+        const blob = await applyCompress(canvas, { quality: q, method: "lossy" });
+        return canvasFromBlob(blob);
+      }
       case "denoise":
         return applyDenoise(canvas, node.data as any);
       case "rename":
@@ -119,6 +143,14 @@ export class PipelineEngine {
         inDegree.set(neighbor, newDeg);
         if (newDeg === 0) queue.push(neighbor);
       }
+    }
+
+    if (result.length !== nodes.length) {
+      const sortedIds = new Set(result.map((n) => n.id));
+      const cycleNodes = nodes.filter((n) => !sortedIds.has(n.id)).map((n) => n.id);
+      throw new Error(
+        `Pipeline contains a cycle involving nodes: ${cycleNodes.join(", ")}`
+      );
     }
 
     return result;
