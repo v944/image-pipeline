@@ -30,4 +30,7 @@ dist-ssr
 
 # Local secrets
 _kv_sec.txt
+
+# Local docs (full architecture tracking, not for repo)
+README.md
 .env*
