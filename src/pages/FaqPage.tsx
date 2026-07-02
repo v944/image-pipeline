@@ -3,68 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ExternalLink, ArrowRight } from "lucide-react";
 
-const FAQ_ITEMS = [
-  {
-    question: "How does batch processing work?",
-    answer:
-      "Upload your images, build a pipeline by connecting nodes on the canvas (e.g. Load → Crop → Export), then click Process. Every image runs through the same pipeline. The outputs are collected into a single ZIP file for download.",
-  },
-  {
-    question: "What are the free tier limits?",
-    answer:
-      "Free tier allows up to 10 files per batch, 4 nodes per pipeline, and 10 processing batches per day. Usage resets daily. Upgrade to Pro for unlimited access.",
-  },
-  {
-    question: "How do I pay with USDT (TRC-20)?",
-    answer:
-      "Go to the Pricing page and select Pro or Lifetime. Copy the USDT (TRC-20) wallet address, send the exact amount, then paste the transaction ID (TxID) in the confirmation modal. Your account upgrades automatically once the transaction is verified via TronScan.",
-  },
-  {
-    question: "What image formats are supported?",
-    answer:
-      "Input: JPEG, PNG, WebP, AVIF, GIF, BMP, TIFF. Output (via the Export node): PNG, JPEG, WebP, AVIF. The Compress and Format nodes let you convert between formats and adjust quality.",
-  },
-  {
-    question: "Is my data private?",
-    answer:
-      "Yes. All image processing happens entirely in your browser. Your files are never uploaded to any server — nothing leaves your device. Usage counters are stored locally and synced anonymously with our server only for rate limiting.",
-  },
-  {
-    question: "Can I use the editor without an account?",
-    answer:
-      "Yes. No signup, no email, no account needed. Just open the editor and start building pipelines.",
-  },
-  {
-    question: "What does each pipeline node do?",
-    answer:
-      "Load — entry point for your images; Resize — change dimensions; Crop — cut a region; Compress — reduce file size; Format — convert format; Watermark — add text overlay; Denoise — reduce noise; Rename — set output filenames; Export — final output settings. Connect them in any order.",
-  },
-  {
-    question: "How do I connect nodes in the pipeline?",
-    answer:
-      "Each node has circular handles on its sides. Drag from the output handle (right side) of one node to the input handle (left side) of another. A disconnected node is skipped during processing.",
-  },
-  {
-    question: "What happens if a node fails?",
-    answer:
-      "Processing continues for the remaining files. Failed files are marked with an error status. You can see the error message in the completion dialog after processing finishes.",
-  },
-  {
-    question: "Can I share my pipeline with someone?",
-    answer:
-      "Yes. After building a pipeline, click the Share button in the editor header. You'll get a link that expires after 7 days. Anyone with the link can load the pipeline into their own editor.",
-  },
-  {
-    question: "What is the Lifetime plan?",
-    answer:
-      "Lifetime costs $30 USDT (one-time). It never expires and includes all features of Pro. No recurring payments, no subscriptions.",
-  },
-  {
-    question: "How long does USDT verification take?",
-    answer:
-      "Once you submit the transaction ID (TxID), verification typically completes within a few seconds. In rare cases, it may take up to a minute depending on TronScan availability.",
-  },
-];
+const FAQ_KEYS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 function AccordionItem({
   question,
@@ -102,13 +41,18 @@ export function FaqPage() {
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
 
+  const faqItems = FAQ_KEYS.map((n) => ({
+    question: t(`faq.q${n}`),
+    answer: t(`faq.q${n}a`),
+  }));
+
   return (
     <>
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          "mainEntity": FAQ_ITEMS.map((item) => ({
+          "mainEntity": faqItems.map((item) => ({
             "@type": "Question",
             "name": item.question,
             "acceptedAnswer": {
@@ -147,7 +91,7 @@ export function FaqPage() {
           </p>
 
           <div className="border-t border-white/5">
-            {FAQ_ITEMS.map((item, i) => (
+            {faqItems.map((item, i) => (
               <AccordionItem
                 key={i}
                 question={item.question}

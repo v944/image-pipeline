@@ -138,7 +138,31 @@
     "title": "Frequently Asked Questions",
     "subtitle": "Everything you need to know about Image Pipeline.",
     "stillHaveQuestions": "Still have questions?",
-    "openIssue": "Open an issue on GitHub and we'll help."
+    "openIssue": "Open an issue on GitHub and we'll help.",
+    "q1": "How does batch processing work?",
+    "q1a": "Upload your images, build a pipeline by connecting nodes on the canvas (e.g. Load → Crop → Export), then click Process. Every image runs through the same pipeline. The outputs are collected into a single ZIP file for download.",
+    "q2": "What are the free tier limits?",
+    "q2a": "Free tier allows up to 10 files per batch, 4 nodes per pipeline, and 10 processing batches per day. Usage resets daily. Upgrade to Pro for unlimited access.",
+    "q3": "How do I pay with USDT (TRC-20)?",
+    "q3a": "Go to the Pricing page and select Pro or Lifetime. Copy the USDT (TRC-20) wallet address, send the exact amount, then paste the transaction ID (TxID) in the confirmation modal. Your account upgrades automatically once the transaction is verified via TronScan.",
+    "q4": "What image formats are supported?",
+    "q4a": "Input: JPEG, PNG, WebP, AVIF, GIF, BMP, TIFF. Output (via the Export node): PNG, JPEG, WebP, AVIF. The Compress and Format nodes let you convert between formats and adjust quality.",
+    "q5": "Is my data private?",
+    "q5a": "Yes. All image processing happens entirely in your browser. Your files are never uploaded to any server — nothing leaves your device. Usage counters are stored locally and synced anonymously with our server only for rate limiting.",
+    "q6": "Can I use the editor without an account?",
+    "q6a": "Yes. No signup, no email, no account needed. Just open the editor and start building pipelines.",
+    "q7": "What does each pipeline node do?",
+    "q7a": "Load — entry point for your images; Resize — change dimensions; Crop — cut a region; Compress — reduce file size; Format — convert format; Watermark — add text overlay; Denoise — reduce noise; Rename — set output filenames; Export — final output settings. Connect them in any order.",
+    "q8": "How do I connect nodes in the pipeline?",
+    "q8a": "Each node has circular handles on its sides. Drag from the output handle (right side) of one node to the input handle (left side) of another. A disconnected node is skipped during processing.",
+    "q9": "What happens if a node fails?",
+    "q9a": "Processing continues for the remaining files. Failed files are marked with an error status. You can see the error message in the completion dialog after processing finishes.",
+    "q10": "Can I share my pipeline with someone?",
+    "q10a": "Yes. After building a pipeline, click the Share button in the editor header. You'll get a link that expires after 7 days. Anyone with the link can load the pipeline into their own editor.",
+    "q11": "What is the Lifetime plan?",
+    "q11a": "Lifetime costs $30 USDT (one-time). It never expires and includes all features of Pro. No recurring payments, no subscriptions.",
+    "q12": "How long does USDT verification take?",
+    "q12a": "Once you submit the transaction ID (TxID), verification typically completes within a few seconds. In rare cases, it may take up to a minute depending on TronScan availability."
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -200,7 +224,9 @@
     "step6Title": "Download",
     "step6Desc": "Download the results as a ZIP file.",
     "next": "Next",
-    "done": "Got it!"
+    "done": "Got it!",
+    "back": "Back",
+    "skip": "Skip tour"
   },
   "cookie": {
     "title": "Cookie Consent",

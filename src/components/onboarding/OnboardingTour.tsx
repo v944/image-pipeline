@@ -1,47 +1,45 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useUIStore } from "../../stores/ui.store";
 
-const STEPS = [
-  {
-    title: "Welcome to Image Pipeline",
-    body: "Build custom image processing pipelines visually. Each node performs one operation — connect them to create powerful workflows.",
-    action: "Get Started",
-  },
-  {
-    title: "Upload Files",
-    body: 'Start by uploading your images. Drag & drop or click to select. Supported formats: JPEG, PNG, WebP, AVIF, GIF, BMP, TIFF.',
-    target: "files-tab",
-    action: "Next",
-  },
-  {
-    title: "Add Nodes",
-    body: 'Switch to the Nodes tab to see all available operations. Click a node to add it to the canvas, or drag it in.',
-    target: "nodes-tab",
-    action: "Next",
-  },
-  {
-    title: "Build Your Pipeline",
-    body: "Connect nodes by dragging from one handle to another. Disconnected nodes are skipped during processing.",
-    target: "canvas",
-    action: "Next",
-  },
-  {
-    title: "Configure Settings",
-    body: "Select any node on the canvas to open its settings panel on the right. Each node type has its own set of controls — tweak them to fine-tune your output.",
-    action: "Next",
-  },
-  {
-    title: "Process Images",
-    body: "Once your pipeline is ready, hit the Process button in the header. All images run through the same pipeline.",
-    target: "process-btn",
-    action: "Next",
-  },
-  {
-    title: "All Set!",
-    body: "You're ready to start building. Experiment, combine nodes, and process your images — all client-side, nothing leaves your device.",
-    action: "Finish",
-  },
-];
+function useSteps() {
+  const { t } = useTranslation();
+  return [
+    {
+      title: t("onboarding.step1Title"),
+      body: t("onboarding.step1Desc"),
+      action: t("onboarding.done"),
+    },
+    {
+      title: t("onboarding.step2Title"),
+      body: t("onboarding.step2Desc"),
+      target: "files-tab" as const,
+      action: t("onboarding.next"),
+    },
+    {
+      title: t("onboarding.step3Title"),
+      body: t("onboarding.step3Desc"),
+      target: "nodes-tab" as const,
+      action: t("onboarding.next"),
+    },
+    {
+      title: t("onboarding.step4Title"),
+      body: t("onboarding.step4Desc"),
+      action: t("onboarding.next"),
+    },
+    {
+      title: t("onboarding.step5Title"),
+      body: t("onboarding.step5Desc"),
+      target: "process-btn" as const,
+      action: t("onboarding.next"),
+    },
+    {
+      title: t("onboarding.step6Title"),
+      body: t("onboarding.step6Desc"),
+      action: t("onboarding.done"),
+    },
+  ];
+}
 
 function getTargetRect(targetId: string): DOMRect | null {
   const el = document.querySelector(`[data-onboarding="${targetId}"]`);
@@ -52,17 +50,20 @@ function getTargetRect(targetId: string): DOMRect | null {
 function TooltipCard({
   step,
   total,
+  steps,
   onNext,
   onSkip,
   onPrev,
 }: {
   step: number;
   total: number;
+  steps: { title: string; body: string; action: string; target?: string }[];
   onNext: () => void;
   onSkip: () => void;
   onPrev: () => void;
 }) {
-  const s = STEPS[step - 1];
+  const { t } = useTranslation();
+  const s = steps[step - 1];
   const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
@@ -96,14 +97,14 @@ function TooltipCard({
     >
       <div className="flex items-center gap-2 mb-1">
         <span className="text-[10px] font-medium text-amber-400 uppercase tracking-wider">
-          Step {step} of {total}
+          {step} / {total}
         </span>
       </div>
       <h3 className="text-base font-semibold text-gray-100 mb-2">{s.title}</h3>
       <p className="text-sm text-gray-400 leading-relaxed mb-5">{s.body}</p>
       <div className="flex items-center justify-between">
         <button onClick={onSkip} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-          Skip tour
+          {t("onboarding.skip")}
         </button>
         <div className="flex items-center gap-2">
           {step > 1 && (
@@ -111,7 +112,7 @@ function TooltipCard({
               onClick={onPrev}
               className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
             >
-              Back
+              {t("onboarding.back")}
             </button>
           )}
           <button
@@ -156,6 +157,7 @@ export function OnboardingTour() {
   const prevStep = useUIStore((s) => s.prevOnboardingStep);
   const skip = useUIStore((s) => s.skipOnboarding);
   const setLeftSidebar = useUIStore((s) => s.setLeftSidebar);
+  const steps = useSteps();
 
   useEffect(() => {
     if (step === 2) setLeftSidebar("files");
@@ -164,16 +166,17 @@ export function OnboardingTour() {
 
   if (step === null) return null;
 
-  const s = STEPS[step - 1];
+  const s = steps[step - 1];
 
   return (
     <>
-      {step > 1 && step < 7 && s.target && <HighlightBox targetId={s.target} />}
+      {step > 1 && step < steps.length && s.target && <HighlightBox targetId={s.target} />}
       <TooltipCard
         step={step}
-        total={STEPS.length}
+        steps={steps}
+        total={steps.length}
         onNext={() => {
-          if (step === STEPS.length) {
+          if (step === steps.length) {
             useUIStore.getState().completeOnboarding();
           } else {
             nextStep();
