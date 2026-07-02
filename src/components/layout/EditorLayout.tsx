@@ -82,6 +82,9 @@ export function EditorLayout() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         if (e.shiftKey) {
           e.preventDefault();
@@ -89,6 +92,21 @@ export function EditorLayout() {
         } else {
           e.preventDefault();
           usePipelineStore.getState().undo();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        useUIStore.getState().setRightSidebar("closed");
+        window.dispatchEvent(new CustomEvent("start-processing"));
+        return;
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && !isInput) {
+        const selectedId = usePipelineStore.getState().selectedNodeId;
+        if (selectedId) {
+          usePipelineStore.getState().removeNode(selectedId);
         }
       }
     };

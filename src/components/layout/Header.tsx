@@ -1,4 +1,5 @@
-import { Play, Ban, Save, Undo2, Redo2, Menu } from "lucide-react";
+import { Play, Ban, Save, Undo2, Redo2, Menu, HelpCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useSavedPipelinesStore } from "../../stores/saved-pipelines.store";
@@ -8,6 +9,7 @@ import { UsageIndicator } from "./UsageIndicator";
 import { cn } from "../../lib";
 
 export function Header({ onProcess }: { onProcess: () => void }) {
+  const navigate = useNavigate();
   const files = useFilesStore((s) => s.files);
   const nodes = usePipelineStore((s) => s.nodes);
   const isProcessing = useUIStore((s) => s.isProcessing);
@@ -97,6 +99,14 @@ export function Header({ onProcess }: { onProcess: () => void }) {
           {plan === "free" ? "Free" : "Pro"}
         </span>
         {plan === "free" && <UsageIndicator compact />}
+
+        <button
+          onClick={() => navigate("/faq")}
+          className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+          title="FAQ"
+        >
+          <HelpCircle className="w-4 h-4" />
+        </button>
 
         <button
           data-onboarding="process-btn"

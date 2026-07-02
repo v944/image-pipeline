@@ -20,6 +20,7 @@ interface FilesState {
   addFiles: (files: File[], status?: "pending" | "blocked", blockReason?: string) => void;
   removeFile: (id: string) => void;
   clearFiles: () => void;
+  reorderFiles: (fromIndex: number, toIndex: number) => void;
   updateFileStatus: (id: string, status: ImageFile["status"], error?: string) => void;
 }
 
@@ -71,6 +72,15 @@ export const useFilesStore = create<FilesState>()((set, get) => ({
       }
     });
     set({ files: [] });
+  },
+
+  reorderFiles: (fromIndex, toIndex) => {
+    set((s) => {
+      const files = [...s.files];
+      const [moved] = files.splice(fromIndex, 1);
+      files.splice(toIndex, 0, moved);
+      return { files };
+    });
   },
 
   updateFileStatus: (id, status, error) => {
