@@ -1,5 +1,12 @@
-interface WindowEventMap {
-  "start-processing": CustomEvent;
+declare global {
+  interface WindowEventMap {
+    "start-processing": CustomEvent;
+  }
+
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
 }
 
 declare module "*?worker" {

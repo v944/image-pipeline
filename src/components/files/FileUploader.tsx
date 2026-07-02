@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState, type DragEvent } from "react";
 import { Upload } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useFilesStore } from "../../stores/files.store";
 import { useUserStore } from "../../stores/user.store";
 import { cn } from "../../lib";
+import { trackEvent, Events } from "../../lib/analytics";
 
 const ACCEPTED_TYPES = [
   "image/jpeg",
@@ -18,6 +20,7 @@ const FREE_LIMIT = 10 * 1024 * 1024;
 const PRO_LIMIT = 500 * 1024 * 1024;
 
 export function FileUploader() {
+  const { t } = useTranslation();
   const addFiles = useFilesStore((s) => s.addFiles);
   const fileCount = useFilesStore((s) => s.files.length);
   const plan = useUserStore((s) => s.plan);
@@ -46,11 +49,14 @@ export function FileUploader() {
         valid.push(file);
       }
 
-      if (valid.length > 0) addFiles(valid);
+      if (valid.length > 0) {
+        addFiles(valid);
+        trackEvent(Events.FILE_UPLOAD, { fileCount: valid.length, plan: plan });
+      }
       if (oversized.length > 0) addFiles(oversized, "blocked", "file_size");
       if (unsupported.length > 0) addFiles(unsupported, "blocked", "unsupported_format");
     },
-    [addFiles, maxFileSize]
+    [addFiles, maxFileSize, plan]
   );
 
   const handleDrop = useCallback(
@@ -93,13 +99,13 @@ export function FileUploader() {
       >
         <Upload className="w-8 h-8 mx-auto mb-2 text-gray-500" />
         <p className="text-sm text-gray-400">
-          Drop images here or click to browse
+          {t("fileUploader.dropHere")}
         </p>
         <p className="text-xs text-gray-600 mt-1">
-          JPG, PNG, WebP, AVIF, GIF — up to {limitLabel} each
+          {t("fileUploader.supportedFormats", { limit: limitLabel })}
         </p>
         {fileCount > 0 && (
-          <p className="text-xs text-amber-400 mt-2">{fileCount} files loaded</p>
+          <p className="text-xs text-amber-400 mt-2">{t("fileUploader.filesLoaded", { count: fileCount })}</p>
         )}
         <input
           ref={inputRef}

@@ -69,6 +69,9 @@ export default async function handler(request: Request): Promise<Response> {
     if (allowed) {
       await kv.zadd(windowKey, now, `${now}-${crypto.randomUUID().slice(0, 6)}`);
       await kv.expire(windowKey, Math.ceil(limitConfig.windowMs / 1000));
+    } else {
+      const abuseLog = `abuse:${clientIP}:${limitTypeParam}:${now}`;
+      await kv.set(abuseLog, JSON.stringify({ ip: clientIP, limitType: limitTypeParam, timestamp: now, url: request.url }), 86400 * 30);
     }
 
     const resetAt = now + limitConfig.windowMs;

@@ -1,36 +1,40 @@
 import { ArrowRight, Shield, Zap, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { PricingPage } from "../pricing/PricingPage";
+import { LanguageSwitcher } from "../layout/LanguageSwitcher";
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[#0D0D14] text-gray-100 overflow-y-auto">
       <header className="border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Image Pipeline" className="w-10 h-10" />
-            <span className="font-bold">Image Pipeline</span>
+            <img src="/logo.png" alt={t("common.appName")} className="w-10 h-10" />
+            <span className="font-bold">{t("common.appName")}</span>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate("/editor")}
               className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
             >
-              Editor
+              {t("common.openEditor")}
             </button>
             <button
               onClick={() => navigate("/pricing")}
               className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
             >
-              Pricing
+              {t("pricing.title")}
             </button>
+            <LanguageSwitcher />
             <button
               onClick={() => navigate("/editor")}
               className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              Get Started
+              {t("common.getStarted")}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -40,20 +44,18 @@ export function LandingPage() {
       <main>
         <section className="max-w-6xl mx-auto px-6 pt-16 pb-8 text-center">
           <h1 className="text-5xl font-bold leading-tight mb-4">
-            Batch image processing
+            {t("landing.heroTitle")}
             <br />
-            <span className="text-amber-400">in your browser</span>
+            <span className="text-amber-400">{t("landing.heroAccent")}</span>
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
-            Build visual processing pipelines with a node-based editor.
-            Resize, crop, compress, and convert 100s of images at once.
-            Nothing leaves your device.
+            {t("landing.heroDesc")}
           </p>
           <button
             onClick={() => navigate("/editor")}
             className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-xl text-base font-medium transition-colors"
           >
-            Start Building
+            {t("common.startBuilding")}
             <ArrowRight className="w-5 h-5" />
           </button>
         </section>
@@ -62,18 +64,18 @@ export function LandingPage() {
           <div className="grid grid-cols-3 gap-6">
             <FeatureCard
               icon={Zap}
-              title="Batch Processing"
-              description="Process hundreds of images in one click with a visual node pipeline"
+              title={t("landing.featureBatch")}
+              description={t("landing.featureBatchDesc")}
             />
             <FeatureCard
               icon={Shield}
-              title="100% Private"
-              description="All processing happens in your browser. Images never leave your device."
+              title={t("landing.featurePrivacy")}
+              description={t("landing.featurePrivacyDesc")}
             />
             <FeatureCard
               icon={Layers}
-              title="Node-Based Editor"
-              description="Drag and drop nodes to build processing pipelines visually"
+              title={t("landing.featureNodeEditor")}
+              description={t("landing.featureNodeEditorDesc")}
             />
           </div>
         </section>
@@ -81,13 +83,13 @@ export function LandingPage() {
         <PricingPage />
 
         <section className="max-w-6xl mx-auto px-6 pt-8 pb-16 text-center border-t border-white/5">
-          <h2 className="text-2xl font-bold mb-3">Ready to get started?</h2>
-          <p className="text-gray-400 mb-4">No signup required. Free for basic use.</p>
+          <h2 className="text-2xl font-bold mb-3">{t("landing.ctaTitle")}</h2>
+          <p className="text-gray-400 mb-4">{t("landing.ctaDesc")}</p>
           <button
             onClick={() => navigate("/editor")}
             className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-xl text-base font-medium transition-colors"
           >
-            Open Editor
+            {t("common.openEditor")}
             <ArrowRight className="w-5 h-5" />
           </button>
         </section>
@@ -95,12 +97,12 @@ export function LandingPage() {
 
       <footer className="border-t border-white/5 py-8">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
-          <span>Image Pipeline — Open source batch image processing</span>
+          <span>{t("common.appName")} &mdash; Open source batch image processing</span>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">GitHub</a>
-            <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">FAQ</button>
-            <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">Privacy</button>
-            <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">Terms</button>
+            <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">{t("common.github")}</a>
+            <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">{t("common.faq")}</button>
+            <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">{t("common.privacy")}</button>
+            <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">{t("common.terms")}</button>
           </div>
         </div>
       </footer>

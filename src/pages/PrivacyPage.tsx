@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
 export function PrivacyPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-[#0D0D14] text-gray-100">
@@ -12,8 +14,8 @@ export function PrivacyPage() {
             onClick={() => navigate("/")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <img src="/logo.png" alt="Image Pipeline" className="w-8 h-8" />
-            <span className="font-bold text-base">Image Pipeline</span>
+            <img src="/logo.png" alt={t("common.appName")} className="w-8 h-8" />
+            <span className="font-bold text-base">{t("common.appName")}</span>
           </button>
           <a
             href="https://github.com/v944/image-pipeline"
@@ -21,7 +23,7 @@ export function PrivacyPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors"
           >
-            GitHub <ExternalLink className="w-3.5 h-3.5" />
+            {t("common.github")} <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </header>
@@ -31,11 +33,11 @@ export function PrivacyPage() {
           onClick={() => navigate("/")}
           className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors mb-8"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Home
+          <ArrowLeft className="w-4 h-4" /> {t("common.backToHome")}
         </button>
 
-        <h1 className="text-3xl font-bold mb-8">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mb-8">Last updated: July 1, 2026</p>
+        <h1 className="text-3xl font-bold mb-8">{t("privacy.title")}</h1>
+        <p className="text-sm text-gray-500 mb-8">{t("privacy.lastUpdated")}</p>
 
         <Section title="Introduction">
           Image Pipeline ("we", "our", "us") is committed to protecting your privacy. This Privacy Policy
@@ -141,11 +143,11 @@ export function PrivacyPage() {
 
       <footer className="border-t border-white/5 py-8 mt-12">
         <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
-          <span>Image Pipeline &mdash; Open source batch image processing</span>
+          <span>{t("common.appName")} &mdash; Open source batch image processing</span>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">GitHub</a>
-            <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">FAQ</button>
-            <button onClick={() => navigate("/")} className="hover:text-gray-300 transition-colors">Home</button>
+            <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">{t("common.github")}</a>
+            <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">{t("common.faq")}</button>
+            <button onClick={() => navigate("/")} className="hover:text-gray-300 transition-colors">{t("common.home")}</button>
           </div>
         </div>
       </footer>

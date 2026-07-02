@@ -5,6 +5,7 @@ import { jsonResponse, errorResponse, corsResponse } from "../_shared/response.j
 import { getClientIP } from "../_shared/ip.js";
 
 const TRONSCAN_API = "https://apilist.tronscan.org/api/transaction";
+const TRONGRID_API = "https://api.trongrid.io/v1/accounts";
 const USDT_ADDRESS = process.env.USDT_ADDRESS || "TPenBbjw2BE1zBMot2kKrNuGgYdbPvQwDr";
 const USDT_CONTRACT = process.env.USDT_CONTRACT || "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
@@ -25,6 +26,19 @@ interface TronscanResponse {
   data?: { trc20Transfers?: Trc20Transfer[] }[];
 }
 
+interface TrongridTransfer {
+  transaction_id: string;
+  value: string;
+  to_address: string;
+  block_timestamp: number;
+  token_info?: { address?: string; name?: string; symbol?: string };
+}
+
+interface TrongridResponse {
+  data?: TrongridTransfer[];
+  meta?: { page_size: number; fingerprint?: string };
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") return corsResponse("POST, OPTIONS");
   if (request.method !== "POST") return errorResponse("METHOD_NOT_ALLOWED", "Only POST is allowed", 405);
@@ -38,6 +52,7 @@ export default async function handler(request: Request): Promise<Response> {
     if (count === 1) await kv.expire(rateKey, 60);
     if (count > 5) {
       const ttl = await kv.ttl(rateKey);
+      await kv.set(`abuse:${clientIP}:crypto_verify:${Date.now()}`, JSON.stringify({ ip: clientIP, limitType: "crypto_verify", timestamp: Date.now() }), 86400 * 30);
       return errorResponse("RATE_LIMIT_EXCEEDED", "Rate limit exceeded: 5 verifications per minute", 429, { retryAfter: ttl });
     }
 
@@ -76,35 +91,51 @@ export default async function handler(request: Request): Promise<Response> {
 
     const minTimestamp = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const minAmountWei = (parseInt(expectedAmount) * 1_000_000).toString();
-    const url = `${TRONSCAN_API}?sort=-timestamp&limit=30&address=${USDT_ADDRESS}&start_timestamp=${minTimestamp}&count=true`;
 
-    const tronResponse = await fetch(url, {
-      headers: { "Accept": "application/json" },
-    });
-
-    if (!tronResponse.ok) {
-      console.error(`[${requestId}] TronScan API error: ${tronResponse.status}`);
-      return errorResponse("VERIFICATION_FAILED", "Could not verify transaction. Please try again.", 502);
-    }
-
-    const json = await tronResponse.json() as TronscanResponse;
     let matched = false;
+    let usingFallback = false;
 
-    for (const item of json.data || []) {
-      const transfers = item.trc20Transfers || [];
-      for (const tx of transfers) {
-        if (tx.transaction_id.toLowerCase() !== txId.toLowerCase()) continue;
-        const toAddress = tx.to_address?.toLowerCase() || "";
-        const contractAddress = tx.contract_address?.toLowerCase() || "";
-        if (toAddress !== USDT_ADDRESS.toLowerCase()) continue;
-        if (contractAddress && contractAddress !== USDT_CONTRACT.toLowerCase()) continue;
-        const txAmount = parseInt(tx.amount_str);
-        if (txAmount >= parseInt(minAmountWei)) {
-          matched = true;
-          break;
+    const tryTronScan = async (): Promise<boolean> => {
+      const url = `${TRONSCAN_API}?sort=-timestamp&limit=30&address=${USDT_ADDRESS}&start_timestamp=${minTimestamp}&count=true`;
+      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!res.ok) return false;
+      const json = await res.json() as TronscanResponse;
+      for (const item of json.data || []) {
+        const transfers = item.trc20Transfers || [];
+        for (const tx of transfers) {
+          if (tx.transaction_id.toLowerCase() !== txId.toLowerCase()) continue;
+          const toAddress = tx.to_address?.toLowerCase() || "";
+          const contractAddress = tx.contract_address?.toLowerCase() || "";
+          if (toAddress !== USDT_ADDRESS.toLowerCase()) continue;
+          if (contractAddress && contractAddress !== USDT_CONTRACT.toLowerCase()) continue;
+          const txAmount = parseInt(tx.amount_str);
+          if (txAmount >= parseInt(minAmountWei)) return true;
         }
       }
-      if (matched) break;
+      return false;
+    };
+
+    const tryTrongrid = async (): Promise<boolean> => {
+      const url = `${TRONGRID_API}/${USDT_ADDRESS}/transactions/trc20?only_to=true&min_timestamp=${minTimestamp}&limit=30`;
+      const res = await fetch(url, { headers: { "Accept": "application/json", "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY || "" } });
+      if (!res.ok) return false;
+      const json = await res.json() as TrongridResponse;
+      for (const tx of json.data || []) {
+        if (tx.transaction_id.toLowerCase() !== txId.toLowerCase()) continue;
+        if ((tx.to_address || "").toLowerCase() !== USDT_ADDRESS.toLowerCase()) continue;
+        const contractAddress = tx.token_info?.address || "";
+        if (contractAddress && contractAddress.toLowerCase() !== USDT_CONTRACT.toLowerCase()) continue;
+        const txAmount = parseInt(tx.value);
+        if (txAmount >= parseInt(minAmountWei)) return true;
+      }
+      return false;
+    };
+
+    matched = await tryTronScan();
+    if (!matched) {
+      console.info(`[${requestId}] TronScan: not found, trying Trongrid fallback...`);
+      matched = await tryTrongrid();
+      if (matched) usingFallback = true;
     }
 
     if (!matched) {
@@ -112,6 +143,7 @@ export default async function handler(request: Request): Promise<Response> {
       return jsonResponse({
         verified: false,
         message: "Transaction not found. Check the TxID, amount, and recipient address.",
+        fallbackUsed: usingFallback,
       }, 200);
     }
 
@@ -128,9 +160,12 @@ export default async function handler(request: Request): Promise<Response> {
       activatedAt: new Date().toISOString(),
     }), 30 * 24 * 60 * 60);
 
+    console.info(`[${requestId}] Activation successful via ${usingFallback ? "Trongrid" : "TronScan"}: session=${sessionId}, tier=${planConfig.plan}`);
+
     return jsonResponse({
       verified: true,
       plan: planConfig.plan,
+      fallbackUsed: usingFallback,
       message: `Payment confirmed! ${planConfig.plan === "lifetime" ? "Lifetime" : "Pro"} plan activated.`,
     }, 200);
   } catch (error) {

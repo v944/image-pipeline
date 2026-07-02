@@ -1,4 +1,5 @@
 import { Layers, FileImage, Bookmark, Trash2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useUIStore } from "../../stores/ui.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useSavedPipelinesStore } from "../../stores/saved-pipelines.store";
@@ -8,17 +9,18 @@ import { FileList } from "../files/FileList";
 import { UsageIndicator } from "./UsageIndicator";
 import { cn } from "../../lib";
 
-const TABS = [
-  { id: "palette" as const, icon: Layers, label: "Nodes" },
-  { id: "files" as const, icon: FileImage, label: "Files" },
-  { id: "saved" as const, icon: Bookmark, label: "Saved" },
-];
-
 export function LeftSidebar() {
+  const { t } = useTranslation();
   const activeTab = useUIStore((s) => s.leftSidebar);
   const setTab = useUIStore((s) => s.setLeftSidebar);
   const mobileOpen = useUIStore((s) => s.mobileSidebarOpen);
   const setMobileSidebar = useUIStore((s) => s.setMobileSidebar);
+
+  const TABS = [
+    { id: "palette" as const, icon: Layers, label: t("editor.nodes") },
+    { id: "files" as const, icon: FileImage, label: t("editor.files") },
+    { id: "saved" as const, icon: Bookmark, label: t("editor.saved") },
+  ];
 
   return (
     <>
@@ -75,6 +77,7 @@ export function LeftSidebar() {
 }
 
 function SavedPipelines() {
+  const { t } = useTranslation();
   const pipelines = useSavedPipelinesStore((s) => s.pipelines);
   const remove = useSavedPipelinesStore((s) => s.remove);
   const loadPipeline = usePipelineStore((s) => s.loadPipeline);
@@ -82,8 +85,8 @@ function SavedPipelines() {
   if (pipelines.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500 text-sm">
-        <div className="mb-2">No saved pipelines yet</div>
-        <div className="text-xs text-gray-600">Build a pipeline and click Save in the header</div>
+        <div className="mb-2">{t("sidebar.noSavedPipelines")}</div>
+        <div className="text-xs text-gray-600">{t("sidebar.noSavedPipelinesDesc")}</div>
       </div>
     );
   }
@@ -91,7 +94,7 @@ function SavedPipelines() {
   return (
     <div className="p-3 space-y-2">
       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-3">
-        Saved ({pipelines.length})
+        {t("sidebar.savedPipelinesCount", { count: pipelines.length })}
       </div>
       {pipelines.map((p) => (
         <div
@@ -105,13 +108,13 @@ function SavedPipelines() {
           >
             <div className="text-sm font-medium text-gray-200 truncate">{p.name}</div>
             <div className="text-[10px] text-gray-500">
-              {p.nodes.length} nodes · {new Date(p.updatedAt).toLocaleDateString()}
+              {t("sidebar.nodesCount", { count: p.nodes.length })} · {new Date(p.updatedAt).toLocaleDateString()}
             </div>
           </button>
           <button
             onClick={() => remove(p.id)}
             className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-            title="Delete"
+            title={t("common.delete")}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>

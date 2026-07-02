@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Download, Loader2, CheckCircle2, AlertCircle, Lock, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useUIStore } from "../../stores/ui.store";
@@ -8,9 +9,11 @@ import { useUserStore } from "../../stores/user.store";
 import { PipelineEngine } from "../../core/PipelineEngine";
 import { ZipAssembler } from "../../core/ZipAssembler";
 import { cn } from "../../lib";
+import { trackEvent, Events } from "../../lib/analytics";
 
 export function ProcessingModal() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isProcessing = useUIStore((s) => s.isProcessing);
   const setProcessing = useUIStore((s) => s.setProcessing);
   const progress = useUIStore((s) => s.processingProgress);
@@ -48,6 +51,11 @@ export function ProcessingModal() {
     }
 
     setProcessing(true);
+    trackEvent(Events.PIPELINE_PROCESS, {
+      fileCount: toProcess.length,
+      nodeCount: nodes.length,
+      plan,
+    });
 
     toProcess.forEach((f) => updateFileStatus(f.id, "pending"));
     const processed: { name: string; blob: Blob }[] = [];
@@ -136,34 +144,34 @@ export function ProcessingModal() {
           <>
             <div className="text-center mb-4">
               <Lock className="w-12 h-12 text-amber-400 mx-auto mb-2" />
-              <h3 className="text-lg font-semibold text-gray-100">Free Tier Limit Reached</h3>
+              <h3 className="text-lg font-semibold text-gray-100">{t("processing.freeLimitReached")}</h3>
               <p className="text-sm text-gray-400 mt-1">
                 {plan === "free" ? (
-                  <>You've used all {limitBlocked.limitType === "files" ? "10 file slots" : "your free limit"}{limitBlocked.resetAt ? <> — resets at {new Date(limitBlocked.resetAt).toLocaleTimeString()}</> : ""}. Upgrade to Pro for unlimited processing.</>
+                  <>{t("processing.freeLimitDesc")}</>
                 ) : (
                   "Please try again later."
                 )}
               </p>
             </div>
-            <div className="flex gap-2">
+              <div className="flex gap-2">
               <button
                 onClick={() => navigate("/pricing")}
                 className="flex-1 bg-amber-500 hover:bg-amber-400 text-black px-4 py-2.5 rounded-xl font-medium text-sm transition-colors"
               >
-                Upgrade to Pro ($10 USDT)
+                {t("processing.upgradeToPro")}
               </button>
               <button
                 onClick={() => setLimitBlocked(null)}
                 className="px-4 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors"
               >
-                Close
+                {t("common.close")}
               </button>
               <button
                 onClick={() => navigate("/faq")}
                 className="text-xs text-gray-500 hover:text-gray-300 transition-colors mt-2"
               >
                 <HelpCircle className="w-3 h-3 inline mr-1" />
-                How do limits work?
+                {t("processing.howLimitsWork")}
               </button>
             </div>
           </>
@@ -173,7 +181,7 @@ export function ProcessingModal() {
           <>
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
-              <h3 className="text-lg font-semibold text-gray-100">Processing images...</h3>
+              <h3 className="text-lg font-semibold text-gray-100">{t("processing.processing")}</h3>
             </div>
             <div className="w-full bg-white/5 rounded-full h-2 mb-2">
               <div
@@ -182,7 +190,7 @@ export function ProcessingModal() {
               />
             </div>
             <p className="text-xs text-gray-500">
-              {progress} of {nonBlockedCount} files
+              {t("processing.progress", { current: progress, total: nonBlockedCount })}
             </p>
           </>
         )}
@@ -191,9 +199,9 @@ export function ProcessingModal() {
           <>
             <div className="text-center mb-4">
               <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-2" />
-              <h3 className="text-lg font-semibold text-gray-100">Processing Complete</h3>
+              <h3 className="text-lg font-semibold text-gray-100">{t("processing.complete")}</h3>
               <p className="text-sm text-gray-400 mt-1">
-                {results.length} file{results.length !== 1 ? "s" : ""} processed
+                {results.length === 1 ? t("processing.completeDesc", { count: 1 }) : t("processing.completeDescPlural", { count: results.length })}
               </p>
             </div>
 
@@ -222,7 +230,7 @@ export function ProcessingModal() {
                 )}
               >
                 <Download className="w-4 h-4" />
-                Download ZIP ({results.length} files)
+                {t("processing.downloadZip", { count: results.length })}
               </button>
               <button
                 onClick={() => {
@@ -231,7 +239,7 @@ export function ProcessingModal() {
                 }}
                 className="px-4 py-2.5 rounded-xl font-medium text-sm text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors"
               >
-                Close
+                {t("common.close")}
               </button>
             </div>
           </>

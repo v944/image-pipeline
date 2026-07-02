@@ -1,71 +1,74 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { CryptoModal } from "./CryptoModal";
 import { useUserStore } from "../../stores/user.store";
-
-const PLANS = [
-  {
-    tier: "free" as const,
-    name: "Free",
-    price: "$0",
-    period: "forever",
-    features: [
-      "Up to 10 files per batch",
-      "4 nodes per pipeline",
-      "10 batches per session",
-      "2 output formats",
-      "10 MB per file",
-      "All processing nodes",
-    ],
-    cta: "Get Started",
-    action: "navigate" as const,
-  },
-  {
-    tier: "pro" as const,
-    name: "Pro",
-    price: "$10",
-    period: "one-time",
-    features: [
-      "Unlimited files per batch",
-      "Unlimited nodes",
-      "Unlimited batches",
-      "All output formats",
-      "500 MB per file",
-      "Lanczos3 upscaling",
-      "Priority support",
-    ],
-    cta: "Buy with Crypto",
-    action: "crypto" as const,
-    popular: true,
-  },
-  {
-    tier: "lifetime" as const,
-    name: "Lifetime",
-    price: "$30",
-    period: "one-time",
-    features: [
-      "Everything in Pro",
-      "No expiration",
-      "Future Pro features",
-      "Early access to new nodes",
-      "Name in credits",
-    ],
-    cta: "Buy with Crypto",
-    action: "crypto" as const,
-  },
-];
+import { trackEvent, Events } from "../../lib/analytics";
 
 export function PricingPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
   const [cryptoTier, setCryptoTier] = useState<"pro" | "lifetime" | null>(null);
+
+  const PLANS = [
+    {
+      tier: "free" as const,
+      name: t("pricing.free"),
+      price: "$0",
+      period: t("pricing.freePeriod"),
+      features: [
+        t("pricing.features.freeFiles"),
+        t("pricing.features.freeNodes"),
+        t("pricing.features.freeBatches"),
+        t("pricing.features.freeFormats"),
+        t("pricing.features.freeFileSize"),
+        t("pricing.features.freeNodesAll"),
+      ],
+      cta: t("common.getStarted"),
+      action: "navigate" as const,
+    },
+    {
+      tier: "pro" as const,
+      name: t("pricing.pro"),
+      price: "$10",
+      period: t("pricing.proPeriod"),
+      features: [
+        t("pricing.features.proFiles"),
+        t("pricing.features.proNodes"),
+        t("pricing.features.proBatches"),
+        t("pricing.features.proFormats"),
+        t("pricing.features.proFileSize"),
+        t("pricing.features.proUpscaling"),
+        t("pricing.features.proSupport"),
+      ],
+      cta: t("pricing.buyCrypto"),
+      action: "crypto" as const,
+      popular: true,
+    },
+    {
+      tier: "lifetime" as const,
+      name: t("pricing.lifetime"),
+      price: "$30",
+      period: t("pricing.lifetimePeriod"),
+      features: [
+        t("pricing.features.lifetimeEverything"),
+        t("pricing.features.lifetimeNoExpiry"),
+        t("pricing.features.lifetimeFuture"),
+        t("pricing.features.lifetimeEarlyAccess"),
+        t("pricing.features.lifetimeCredits"),
+      ],
+      cta: t("pricing.buyCrypto"),
+      action: "crypto" as const,
+    },
+  ];
 
   return (
     <section className="max-w-6xl mx-auto px-6 py-16">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold mb-3">Simple Pricing</h2>
-        <p className="text-gray-400">Pay once, use forever. No subscriptions.</p>
+        <h2 className="text-3xl font-bold mb-3">{t("pricing.title")}</h2>
+        <p className="text-gray-400">{t("pricing.subtitle")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -82,7 +85,7 @@ export function PricingPage() {
             >
               {p.popular && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-wider bg-amber-500 text-black px-3 py-1 rounded-full">
-                  Popular
+                  {t("pricing.popular")}
                 </span>
               )}
               <div className="mb-6">
@@ -102,7 +105,7 @@ export function PricingPage() {
               </ul>
               {isCurrentPlan ? (
                 <span className="block text-center text-sm text-amber-400 font-medium py-2.5 border border-amber-500/20 rounded-xl">
-                  Current Plan
+                  {t("pricing.currentPlan")}
                 </span>
               ) : p.action === "navigate" ? (
                 <button
@@ -113,7 +116,10 @@ export function PricingPage() {
                 </button>
               ) : (
                 <button
-                  onClick={() => setCryptoTier(p.tier)}
+                  onClick={() => {
+                    setCryptoTier(p.tier);
+                    trackEvent(Events.PURCHASE_INITIATED, { plan: p.tier, price: p.tier === "pro" ? 10 : 30 });
+                  }}
                   className="w-full bg-amber-500 hover:bg-amber-400 text-black px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
                 >
                   {p.cta}

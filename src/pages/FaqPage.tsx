@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, ExternalLink, ArrowRight } from "lucide-react";
 
 const FAQ_ITEMS = [
@@ -96,6 +97,7 @@ function AccordionItem({
 
 export function FaqPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
@@ -124,8 +126,8 @@ export function FaqPage() {
               onClick={() => navigate("/")}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              <img src="/logo.png" alt="Image Pipeline" className="w-8 h-8" />
-              <span className="font-bold text-base">Image Pipeline</span>
+              <img src="/logo.png" alt={t("common.appName")} className="w-8 h-8" />
+              <span className="font-bold text-base">{t("common.appName")}</span>
             </button>
             <a
               href="https://github.com/v944/image-pipeline"
@@ -133,15 +135,15 @@ export function FaqPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors"
             >
-              GitHub <ExternalLink className="w-3.5 h-3.5" />
+              {t("common.github")} <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </header>
 
         <main className="max-w-3xl mx-auto px-6 py-12">
-          <h1 className="text-3xl font-bold mb-2">Frequently Asked Questions</h1>
+          <h1 className="text-3xl font-bold mb-2">{t("faq.title")}</h1>
           <p className="text-gray-400 text-sm mb-8">
-            Everything you need to know about Image Pipeline.
+            {t("faq.subtitle")}
           </p>
 
           <div className="border-t border-white/5">
@@ -157,22 +159,22 @@ export function FaqPage() {
           </div>
 
           <div className="mt-12 text-center p-8 rounded-2xl border border-white/5 bg-white/[0.02]">
-            <h2 className="text-lg font-semibold mb-2">Still have questions?</h2>
+            <h2 className="text-lg font-semibold mb-2">{t("faq.stillHaveQuestions")}</h2>
             <p className="text-sm text-gray-400 mb-4">
-              Open an issue on GitHub and we&apos;ll help.
+              {t("faq.openIssue")}
             </p>
             <button
               onClick={() => navigate("/editor")}
               className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
             >
-              Open Editor <ArrowRight className="w-4 h-4" />
+              {t("common.openEditor")} <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </main>
 
         <footer className="border-t border-white/5 py-8 mt-12">
           <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
-            <span>Image Pipeline &mdash; Open source batch image processing</span>
+            <span>{t("common.appName")} &mdash; Open source batch image processing</span>
             <div className="flex items-center gap-4">
               <a
                 href="https://github.com/v944/image-pipeline"
@@ -180,12 +182,12 @@ export function FaqPage() {
                 rel="noopener noreferrer"
                 className="hover:text-gray-300 transition-colors"
               >
-                GitHub
+                {t("common.github")}
               </a>
-              <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">Privacy</button>
-              <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">Terms</button>
+              <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">{t("common.privacy")}</button>
+              <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">{t("common.terms")}</button>
               <button onClick={() => navigate("/")} className="hover:text-gray-300 transition-colors">
-                Home
+                {t("common.home")}
               </button>
             </div>
           </div>

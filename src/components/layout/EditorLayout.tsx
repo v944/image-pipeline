@@ -1,16 +1,28 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { cn } from "../../lib";
 import { Header } from "./Header";
 import { LeftSidebar } from "./Sidebar";
-import { FlowEditor } from "../pipeline/FlowEditor";
 import { ProcessingModal } from "../processing/ProcessingModal";
 import { useUIStore } from "../../stores/ui.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useUserStore } from "../../stores/user.store";
 import { NodeSettings } from "../pipeline/NodeSettings";
 import { OnboardingTour } from "../onboarding/OnboardingTour";
-import "../../index.css";
+
+const FlowEditor = lazy(() => import("../pipeline/FlowEditor").then((m) => ({ default: m.FlowEditor })));
+
+function EditorSkeleton() {
+  return (
+    <div className="flex-1 flex items-center justify-center bg-[#0D0D14]">
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-full bg-white/5 mx-auto mb-4 animate-pulse" />
+        <div className="h-3 w-48 bg-white/5 rounded mx-auto mb-2 animate-pulse" />
+        <div className="h-3 w-32 bg-white/5 rounded mx-auto animate-pulse" />
+      </div>
+    </div>
+  );
+}
 
 function EditorContent() {
   const rightSidebar = useUIStore((s) => s.rightSidebar);
@@ -36,7 +48,9 @@ function EditorContent() {
     <div className="flex flex-1 overflow-hidden">
       <LeftSidebar />
       <main className="flex-1 relative">
-        <FlowEditor />
+        <Suspense fallback={<EditorSkeleton />}>
+          <FlowEditor />
+        </Suspense>
       </main>
       {rightSidebar === "settings" && selectedNodeId && (
         <>

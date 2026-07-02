@@ -6,6 +6,13 @@ export default async function handler(request: Request): Promise<Response> {
     return corsResponse("GET, OPTIONS");
   }
 
+  if (request.method === "HEAD") {
+    return new Response(null, {
+      status: 200,
+      headers: { "Cache-Control": "no-store, no-cache, must-revalidate" },
+    });
+  }
+
   if (request.method !== "GET") {
     return errorResponse("METHOD_NOT_ALLOWED", "Only GET is allowed", 405);
   }

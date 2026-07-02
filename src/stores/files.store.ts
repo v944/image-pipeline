@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { generateThumbnailUrl } from "../lib/thumbnail";
 
 export interface ImageFile {
   id: string;
@@ -22,6 +23,7 @@ interface FilesState {
   clearFiles: () => void;
   reorderFiles: (fromIndex: number, toIndex: number) => void;
   updateFileStatus: (id: string, status: ImageFile["status"], error?: string) => void;
+  setFilePreview: (id: string, previewUrl: string) => void;
 }
 
 let fileIdCounter = 0;
@@ -51,6 +53,32 @@ export const useFilesStore = create<FilesState>()((set, get) => ({
       };
     });
     set({ files: [...existing, ...toAdd] });
+
+    if (status !== "blocked") {
+      for (const f of toAdd) {
+        generateThumbnailUrl(f.file).then((thumbUrl) => {
+          const current = get().files.find((x) => x.id === f.id);
+          if (current) {
+            if (current.previewUrl && current.previewUrl !== current.blobUrl) {
+              URL.revokeObjectURL(current.previewUrl);
+            }
+            set((s) => ({
+              files: s.files.map((x) =>
+                x.id === f.id ? { ...x, previewUrl: thumbUrl } : x
+              ),
+            }));
+          }
+        });
+      }
+    }
+  },
+
+  setFilePreview: (id, previewUrl) => {
+    set((s) => ({
+      files: s.files.map((f) =>
+        f.id === id ? { ...f, previewUrl } : f
+      ),
+    }));
   },
 
   removeFile: (id) => {

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Trash2, CheckCircle2, Loader2, AlertCircle, Lock, GripVertical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useFilesStore } from "../../stores/files.store";
 
 export function FileList() {
+  const { t } = useTranslation();
   const files = useFilesStore((s) => s.files);
   const removeFile = useFilesStore((s) => s.removeFile);
   const clearFiles = useFilesStore((s) => s.clearFiles);
@@ -34,13 +36,13 @@ export function FileList() {
     <div className="p-3">
       <div className="flex items-center justify-between mb-2 px-2">
         <span className="text-xs font-medium text-gray-400">
-          {files.length} file{files.length !== 1 ? "s" : ""}
+          {files.length === 1 ? t("fileUploader.filesCount", { count: 1 }) : t("fileUploader.filesCountPlural", { count: files.length })}
         </span>
         <button
           onClick={clearFiles}
           className="text-xs text-gray-500 hover:text-red-400 transition-colors"
         >
-          Clear all
+          {t("fileUploader.clearAll")}
         </button>
       </div>
       <div className="space-y-1 max-h-[300px] overflow-y-auto">
@@ -82,7 +84,7 @@ export function FileList() {
               </div>
               {file.status === "blocked" && (
                 <div className="text-[10px] text-amber-500 mt-0.5">
-                  {file.blockReason === "unsupported_format" ? "Unsupported format" : "Upgrade to Pro — up to 500MB"}
+                  {file.blockReason === "unsupported_format" ? t("fileUploader.unsupportedFormat") : t("fileUploader.upgradeForSize")}
                 </div>
               )}
             </div>

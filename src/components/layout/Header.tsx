@@ -1,15 +1,18 @@
 import { Play, Ban, Save, Undo2, Redo2, Menu, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useFilesStore } from "../../stores/files.store";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useSavedPipelinesStore } from "../../stores/saved-pipelines.store";
 import { useUIStore } from "../../stores/ui.store";
 import { useUserStore } from "../../stores/user.store";
 import { UsageIndicator } from "./UsageIndicator";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { cn } from "../../lib";
 
 export function Header({ onProcess }: { onProcess: () => void }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const files = useFilesStore((s) => s.files);
   const nodes = usePipelineStore((s) => s.nodes);
   const isProcessing = useUIStore((s) => s.isProcessing);
@@ -37,17 +40,17 @@ export function Header({ onProcess }: { onProcess: () => void }) {
   return (
     <header className="h-14 flex items-center justify-between px-4 bg-[#111118] border-b border-white/5">
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => setMobileSidebar(!mobileSidebarOpen)}
-          className="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5"
-          title="Toggle sidebar"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Image Pipeline" className="w-10 h-10" />
-          <span className="text-sm font-bold text-gray-100">Image Pipeline</span>
-        </div>
+          <button
+            onClick={() => setMobileSidebar(!mobileSidebarOpen)}
+            className="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5"
+            title={t("editor.toggleSidebar")}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt={t("common.appName")} className="w-10 h-10" />
+            <span className="text-sm font-bold text-gray-100">{t("common.appName")}</span>
+          </div>
         <div className="hidden lg:flex items-center gap-1 ml-6">
           <button
             onClick={undo}
@@ -56,7 +59,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
               "p-1.5 rounded-lg transition-colors",
               past.length > 0 ? "text-gray-400 hover:text-gray-200 hover:bg-white/5" : "text-gray-700 cursor-not-allowed"
             )}
-            title="Undo (Ctrl+Z)"
+            title={t("editor.undo") + " (Ctrl+Z)"}
           >
             <Undo2 className="w-4 h-4" />
           </button>
@@ -67,10 +70,11 @@ export function Header({ onProcess }: { onProcess: () => void }) {
               "p-1.5 rounded-lg transition-colors",
               future.length > 0 ? "text-gray-400 hover:text-gray-200 hover:bg-white/5" : "text-gray-700 cursor-not-allowed"
             )}
-            title="Redo (Ctrl+Shift+Z)"
+            title={t("editor.redo") + " (Ctrl+Shift+Z)"}
           >
             <Redo2 className="w-4 h-4" />
           </button>
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -86,7 +90,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
           )}
         >
           <Save className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Save</span>
+          <span className="hidden sm:inline">{t("editor.headerSave")}</span>
         </button>
         <span
           className={cn(
@@ -96,14 +100,14 @@ export function Header({ onProcess }: { onProcess: () => void }) {
               : "bg-amber-500/20 text-amber-400"
           )}
         >
-          {plan === "free" ? "Free" : "Pro"}
+          {plan === "free" ? t("editor.free") : plan === "lifetime" ? t("editor.lifetime") : t("editor.pro")}
         </span>
         {plan === "free" && <UsageIndicator compact />}
 
         <button
           onClick={() => navigate("/faq")}
           className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
-          title="FAQ"
+          title={t("common.faq")}
         >
           <HelpCircle className="w-4 h-4" />
         </button>
@@ -112,7 +116,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
           data-onboarding="process-btn"
           onClick={onProcess}
           disabled={!canProcess}
-          title={allBlocked ? "All files exceed the size limit" : undefined}
+          title={allBlocked ? t("editor.allFilesBlocked") : undefined}
           className={cn(
             "flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-all",
             canProcess
@@ -125,7 +129,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
           ) : (
             <Play className="w-4 h-4" fill="currentColor" />
           )}
-          <span className="hidden sm:inline">Process</span>
+          <span className="hidden sm:inline">{t("editor.headerProcess")}</span>
         </button>
       </div>
     </header>

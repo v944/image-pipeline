@@ -1,23 +1,26 @@
 import { useReactFlow } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import type { NodeType } from "../../types";
-
-const PALETTE_ITEMS: { type: NodeType; icon: string; label: string; description: string }[] = [
-  { type: "load", icon: "📂", label: "Load", description: "Load input images" },
-  { type: "resize", icon: "📐", label: "Resize", description: "Change image dimensions" },
-  { type: "crop", icon: "✂️", label: "Crop", description: "Crop to region" },
-  { type: "compress", icon: "📦", label: "Compress", description: "Reduce file size" },
-  { type: "format", icon: "🔄", label: "Format", description: "Convert format" },
-  { type: "watermark", icon: "©", label: "Watermark", description: "Add text overlay" },
-  { type: "denoise", icon: "🧹", label: "Denoise", description: "Reduce image noise" },
-  { type: "rename", icon: "✏️", label: "Rename", description: "Rename output files" },
-  { type: "export", icon: "💾", label: "Export", description: "Output settings" },
-];
+import { trackEvent, Events } from "../../lib/analytics";
 
 export function NodePalette() {
+  const { t } = useTranslation();
   const addNode = usePipelineStore((s) => s.addNode);
   const nodes = usePipelineStore((s) => s.nodes);
   const reactFlow = useReactFlow();
+
+  const PALETTE_ITEMS: { type: NodeType; icon: string; label: string; description: string }[] = [
+    { type: "load", icon: "📂", label: t("nodePalette.load"), description: t("nodePalette.loadDesc") },
+    { type: "resize", icon: "📐", label: t("nodePalette.resize"), description: t("nodePalette.resizeDesc") },
+    { type: "crop", icon: "✂️", label: t("nodePalette.crop"), description: t("nodePalette.cropDesc") },
+    { type: "compress", icon: "📦", label: t("nodePalette.compress"), description: t("nodePalette.compressDesc") },
+    { type: "format", icon: "🔄", label: t("nodePalette.format"), description: t("nodePalette.formatDesc") },
+    { type: "watermark", icon: "©", label: t("nodePalette.watermark"), description: t("nodePalette.watermarkDesc") },
+    { type: "denoise", icon: "🧹", label: t("nodePalette.denoise"), description: t("nodePalette.denoiseDesc") },
+    { type: "rename", icon: "✏️", label: t("nodePalette.rename"), description: t("nodePalette.renameDesc") },
+    { type: "export", icon: "💾", label: t("nodePalette.export"), description: t("nodePalette.exportDesc") },
+  ];
 
   const handleDragStart = (event: React.DragEvent, type: NodeType) => {
     event.dataTransfer.setData("application/reactflow", type);
@@ -30,12 +33,13 @@ export function NodePalette() {
       y: window.innerHeight / 2,
     });
     addNode(type, position);
+    trackEvent(Events.NODE_ADDED, { nodeType: type, method: "click" });
   };
 
   return (
     <div className="p-3 space-y-1.5">
       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-3">
-        Nodes
+        {t("sidebar.nodePalette")}
       </div>
       {PALETTE_ITEMS.map((item) => {
         const count = nodes.filter((n) => n.type === item.type).length;

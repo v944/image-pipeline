@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Zap, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useUserStore } from "../../stores/user.store";
 import { FREE_LIMITS } from "../../types";
 
@@ -11,6 +12,7 @@ function formatTimeLeft(ms: number): string {
 }
 
 export function UsageIndicator({ compact }: { compact?: boolean }) {
+  const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
   const usage = useUserStore((s) => s.usage);
   const resetAt = useUserStore((s) => s.resetAt);
@@ -69,9 +71,9 @@ export function UsageIndicator({ compact }: { compact?: boolean }) {
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
             <Zap className="w-3 h-3 text-amber-400" />
-            Free tier usage
+            {t("usage.usage")}
           </div>
-          <span className="text-[11px] text-gray-500">{filesUsed}/{filesLimit} files</span>
+          <span className="text-[11px] text-gray-500">{t("usage.filesToday", { count: filesUsed, limit: filesLimit })}</span>
         </div>
         <div className="w-full bg-white/5 rounded-full h-1.5">
           <div
@@ -85,7 +87,7 @@ export function UsageIndicator({ compact }: { compact?: boolean }) {
         {timeLeft && (
           <div className="flex items-center gap-1 mt-1.5 text-[10px] text-gray-500">
             <Clock className="w-2.5 h-2.5" />
-            Resets in {timeLeft}
+            {t("usage.resetsAt", { time: timeLeft })}
           </div>
         )}
       </div>

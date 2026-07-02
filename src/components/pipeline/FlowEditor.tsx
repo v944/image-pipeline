@@ -16,6 +16,7 @@ import "@xyflow/react/dist/style.css";
 import { nodeTypes } from "../nodes";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import type { NodeType } from "../../types";
+import { trackEvent, Events } from "../../lib/analytics";
 
 const defaultEdgeOptions = {
   style: { stroke: "#F59E0B", strokeWidth: 2 },
@@ -110,6 +111,7 @@ export function FlowEditor() {
         y: event.clientY - bounds.top - 20,
       };
       addNode(type, position);
+      trackEvent(Events.NODE_ADDED, { nodeType: type, method: "drag" });
     },
     [addNode]
   );

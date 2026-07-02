@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const COOKIE_CONSENT_KEY = "ip-cookie-consent";
 
 export function CookieBanner() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -30,16 +32,15 @@ export function CookieBanner() {
       <div className="max-w-3xl mx-auto bg-[#1A1A24] border border-white/10 rounded-2xl p-5 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-sm text-gray-200 font-medium mb-1">Cookie Consent</p>
+            <p className="text-sm text-gray-200 font-medium mb-1">{t("cookie.title")}</p>
             <p className="text-xs text-gray-400 leading-relaxed">
-              We use minimal cookies and local storage for essential functionality (usage limits, pipeline
-              drafts) and anonymous analytics to improve the service. No tracking cookies are used.
+              {t("cookie.desc")}
             </p>
           </div>
           <button
             onClick={reject}
             className="p-1 text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <X className="w-4 h-4" />
           </button>
@@ -49,13 +50,13 @@ export function CookieBanner() {
             onClick={accept}
             className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-medium rounded-lg transition-colors"
           >
-            Accept All
+            {t("cookie.acceptAll")}
           </button>
           <button
             onClick={reject}
             className="px-4 py-2 bg-white/10 hover:bg-white/15 text-gray-200 text-sm font-medium rounded-lg transition-colors"
           >
-            Necessary Only
+            {t("cookie.necessaryOnly")}
           </button>
         </div>
       </div>
