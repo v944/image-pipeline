@@ -182,6 +182,8 @@ export function FaqPage() {
               >
                 GitHub
               </a>
+              <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">Privacy</button>
+              <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">Terms</button>
               <button onClick={() => navigate("/")} className="hover:text-gray-300 transition-colors">
                 Home
               </button>

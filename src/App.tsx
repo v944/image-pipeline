@@ -3,6 +3,9 @@ import { LandingPage } from "./components/landing/LandingPage";
 import { PricingPage } from "./components/pricing/PricingPage";
 import { EditorLayout } from "./components/layout/EditorLayout";
 import { FaqPage } from "./pages/FaqPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
+import { TermsPage } from "./pages/TermsPage";
+import { CookieBanner } from "./components/layout/CookieBanner";
 function PricingPageWrapper() {
   return (
     <div className="min-h-screen bg-[#0D0D14] text-gray-100 overflow-y-auto">
@@ -26,9 +29,12 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPageWrapper />} />
         <Route path="/faq" element={<FaqPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/editor" element={<EditorLayout />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <CookieBanner />
     </BrowserRouter>
   );
 }

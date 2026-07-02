@@ -99,6 +99,8 @@ export function LandingPage() {
           <div className="flex items-center gap-4">
             <a href="https://github.com/v944/image-pipeline" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors">GitHub</a>
             <button onClick={() => navigate("/faq")} className="hover:text-gray-300 transition-colors">FAQ</button>
+            <button onClick={() => navigate("/privacy")} className="hover:text-gray-300 transition-colors">Privacy</button>
+            <button onClick={() => navigate("/terms")} className="hover:text-gray-300 transition-colors">Terms</button>
           </div>
         </div>
       </footer>
