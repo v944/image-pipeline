@@ -44,6 +44,8 @@ export function FlowEditor() {
     position: n.position as XYPosition,
     data: { ...n.data, type: n.type, label: n.label },
     selected: n.id === selectedNodeId,
+    width: 160,
+    height: 64,
   }));
 
   const flowEdges: Edge[] = storeEdges.map((e) => ({
@@ -152,6 +154,8 @@ export function FlowEditor() {
           nodeColor={() => "#F59E0B"}
           maskColor="rgba(13,13,20,0.7)"
           className="!bg-[#1A1A24] !border-white/10"
+          pannable
+          zoomable
         />
       </ReactFlow>
     </div>
