@@ -211,6 +211,7 @@
     "resetsAt": "Сброс через {{time}}"
   },
   "settings": {
+    "title": "Настройки",
     "emptyState": "Выберите ноду для настройки",
     "header": "Настройки: {{type}}",
     "resize": {

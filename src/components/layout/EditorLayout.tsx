@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib";
 import { Header } from "./Header";
 import { LeftSidebar } from "./Sidebar";
@@ -25,6 +26,7 @@ function EditorSkeleton() {
 }
 
 function EditorContent() {
+  const { t } = useTranslation();
   const rightSidebar = useUIStore((s) => s.rightSidebar);
   const setRightSidebar = useUIStore((s) => s.setRightSidebar);
   const selectedNodeId = usePipelineStore((s) => s.selectedNodeId);
@@ -69,13 +71,13 @@ function EditorContent() {
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Settings
+                {t("settings.title")}
               </span>
               <button
                 onClick={() => setRightSidebar("closed")}
                 className="text-gray-500 hover:text-gray-300 text-xs"
               >
-                Close
+                {t("common.close")}
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">

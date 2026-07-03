@@ -211,6 +211,7 @@
     "resetsAt": "Resets in {{time}}"
   },
   "settings": {
+    "title": "Settings",
     "emptyState": "Select a node to edit its settings",
     "header": "{{type}} Settings",
     "resize": {
