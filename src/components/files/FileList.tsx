@@ -45,7 +45,7 @@ export function FileList() {
           {t("fileUploader.clearAll")}
         </button>
       </div>
-      <div className="space-y-1 max-h-[300px] overflow-y-auto">
+      <div className="space-y-1">
         {files.map((file, index) => (
           <div
             key={file.id}
