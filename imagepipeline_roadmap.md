@@ -218,9 +218,9 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 - [x] Cookie consent banner (GDPR/CCPA)
 - [x] i18n (EN + RU)
 - [x] PWA manifest + meta tags
-- [ ] Demo GIF (5–10 сек)
-- [ ] Product Hunt ассеты (лого, скриншоты, описания)
-- [ ] GitHub README с GIF
+- [x] Demo GIF (5–10 сек)
+- [x] Product Hunt ассеты (лого, скриншоты, описания)
+- [x] GitHub README с GIF
 
 ### Итерация 2: "Trust & Polish" (Неделя 3–4)
 
@@ -295,9 +295,9 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 ## Часть 6. Чек-лист "Launch Day"
 
 ### За 3 дня до launch:
-- [ ] Demo GIF готов и загружен
+- [x] Demo GIF готов и загружен
 - [ ] Product Hunt пост написан и отредактирован
-- [ ] GitHub README обновлён
+- [x] GitHub README обновлён (demo.gif + MiniMap)
 - [x] Privacy Policy + Terms опубликованы
 - [x] Cookie banner добавлен
 - [x] Все метрики GA4 настроены

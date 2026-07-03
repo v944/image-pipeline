@@ -47,6 +47,12 @@
 - **PWA manifest** + apple-mobile-web-app meta tags
 - **Keyboard shortcuts**: Ctrl+Z/Shift+Z (undo/redo), Ctrl+Enter (process), Del/Backspace (remove node, skips inputs)
 - **Language switcher** (EN/RU toggle) in landing page header + editor header
+- **MiniMap** — bird's-eye view of the pipeline on canvas
+- **Localhost dev mode** — auto-unlock all features (plan: lifetime) when running locally
+- **Desktop shortcut** — one-click launch of local dev server with logo icon
+
+### Icon
+- `public/icon.ico` — 256x256 PNG-based ICO (converted from logo.png)
 
 ### i18n (EN + RU)
 - react-i18next with JSON resource files
@@ -180,7 +186,7 @@
 
 ## Next Steps (Priority)
 
-1. **Demo GIF** — 5-10s screencast for GitHub README + Product Hunt
+1. **Demo GIF** — ✅ done (deployed to https://imagepipeline.art/demo.gif)
 2. **Product Hunt launch** — prepare listing with demo + description
 3. **Blog post** — "How I built a client-side batch image processor" (Dev.to / Medium)
 4. **Submit to directories** — AlternativeTo, G2, Capterra, SaaSHub
