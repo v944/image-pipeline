@@ -1,37 +1,69 @@
-# Image Pipeline — Status Summary (2026-07-01)
+# Image Pipeline — Status Summary (2026-07-03)
 
 ## Project Info
 - **Domain:** `https://imagepipeline.art` (non-www canonical, Vercel nameservers)
 - **GitHub:** `github.com/v944/image-pipeline`
-- **Stack:** Vite 8 + React 19 + TypeScript 6 + @xyflow/react 12 + Zustand 5 + Tailwind CSS 4 + Framer Motion
-- **Backend:** 14 Vercel Edge Functions + Upstash Redis (KV Free, iad1)
-- **Build:** `tsc -b && vite build`, 0 errors
+- **Stack:** Vite 8 + React 19 + TypeScript 6 + @xyflow/react 12 + Zustand 5 + Tailwind CSS 4
+- **Backend:** 16 Vercel Edge Functions + Upstash Redis (KV Free, iad1)
+- **i18n:** react-i18next, EN + RU, localStorage persistence (`ip-lang`)
+- **Analytics:** GA4 (G-SBTY6HS4T1), conditional on cookie consent
+- **Email:** Resend (domain verified)
+- **Monitoring:** UptimeRobot (5min intervals on /api/health)
+- **Build:** `npx tsc -b && npx vite build`, 0 errors
 
 ## What's Done
 
 ### Product / Core
-- Visual node editor (React Flow), 9 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Rename, Export
+- Visual node editor (React Flow @xyflow/react 12), 9 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Rename, Export
 - Pipeline engine with cycle detection, progress tracking, per-file error handling
 - ZIP export via Web Worker (CSP-safe, separate chunk)
 - Batch processing (runs all images through the same pipeline)
-- Sketelon loading state (shimmer animation while JS loads)
+- Skeleton loading state (shimmer animation while JS loads)
+- Lazy-loaded FlowEditor (dynamic import + Suspense)
 
 ### Freemium / Monetization
 - Free tier: 10 files/batch, 4 nodes/pipeline, 10 batches/day (sliding window via KV)
 - Pro ($10 USDT) / Lifetime ($30 USDT) — TRC-20 only
-- TxID verification via TronScan API, 90-day dedup, rate limited (5/min/IP, 10 attempts/session/day)
-- Payment flow: Pricing page → CryptoModal → TxID input → server verify → syncPlanFromServer
+- TxID verification via TronScan API **with Trongrid fallback**, 90-day dedup, rate limited (5/min/IP, 10 attempts/session/day)
+- Activation timeout UX (2-min timeout → `timeout` status + "Check Activation" button)
+- Payment flow: Pricing page → CryptoModal (email field) → TxID input → server verify → syncPlanFromServer
+- **Payment confirmation email** via Resend (user provides email in modal; receipt sent on successful verification)
 - Fail-open: if API is down, client falls back to localStorage counters
+- `/api/crypto/check` endpoint — manually check activation status by sessionId
 
 ### UI / UX
-- Landing page with features, CTA to editor
-- Editor layout: sidebar (Files/Nodes tabs), canvas, header (plan badge + UsageIndicator)
+- Landing page with features, CTA to editor, footer links (GitHub, FAQ, Privacy, Terms)
+- Editor layout: sidebar (Files/Nodes/Saved tabs), canvas, header (plan badge + UsageIndicator)
 - UsageIndicator: progress bar + daily reset timer + BroadcastChannel cross-tab sync
-- Onboarding tour (7 steps), stored in Zustand
+- Onboarding tour (6 steps), stored in Zustand
 - File uploader with drag-drop, file list with status indicators (pending/processing/done/error/blocked)
+- **64×64 image thumbnails** in file list (createImageBitmap, 128px max dimension)
+- **Drag-to-reorder files** (HTML5 native DnD + Zustand store reorderFiles)
 - Node palette with drag-to-canvas
-- Per-node settings panel (opens on node select)
+- Per-node settings panel (opens on node select) — **fully translated EN+RU**
 - Denoise preview (before/after)
+- FAQ page (/faq) with 12 accordion items + JSON-LD — **translated EN+RU**
+- Privacy Policy (/privacy) and Terms of Service (/terms)
+- **PWA manifest** + apple-mobile-web-app meta tags
+- **Keyboard shortcuts**: Ctrl+Z/Shift+Z (undo/redo), Ctrl+Enter (process), Del/Backspace (remove node, skips inputs)
+- **Language switcher** (EN/RU toggle) in landing page header + editor header
+
+### i18n (EN + RU)
+- react-i18next with JSON resource files
+- `src/i18n/en.json` and `src/i18n/ru.json` — all user-facing strings
+- `LanguageSwitcher` component — toggles `localStorage("ip-lang")` + `i18n.changeLanguage()`
+- Landing page: hero, features, CTA, footer
+- Editor: header (plan badge, save/process), sidebar tabs, file uploader, file list
+- Node palette: all 9 node labels + descriptions
+- **Node settings**: all labels, hints, options, placeholders for all 9 node types
+- **Node canvas names**: translated label set on node creation
+- Pricing page: plan names, features, "Popular", "Current Plan"
+- CryptoModal: amount/plan/network/txId/email labels, all status messages (verified/checking/not-found/timeout/receipt)
+- Processing modal: progress, completion, free limit reached
+- FAQ: all 12 questions and answers
+- Cookie banner: consent text, accept/necessary buttons
+- Privacy & Terms pages: navigation, titles
+- Usage indicator: usage text, reset timer
 
 ### Security / Privacy
 - All processing 100% client-side (no image uploads)
@@ -41,20 +73,28 @@
 - XSS sanitisation for watermark text + rename pattern
 - Blob URL lifecycle management (revoke after use)
 - Zero-dimension crop guard
-- No PII collected, anonymous analytics only (POST /api/event, rate 100/min)
+- No PII collected, anonymous analytics only (POST /api/event, rate 100/min, GA4 conditional on consent)
 - fail-open everywhere (API failures don't break the app)
+
+### Backend / API
+- **16 Edge Functions** deployed on Vercel
+- Rate limiting with abuse logging (KV keys `abuse:{IP}:{limitType}` with 30d TTL)
+- **TronScan → Trongrid fallback** in `/api/crypto/verify`
+- **`/api/crypto/check`** — activation status check by sessionId
+- **`/api/crypto/receipt`** — payment confirmation email via Resend
+- `/api/health` supports HEAD requests (for UptimeRobot)
+- 90-day TxID deduplication across all endpoints
 
 ### Deployment
 - Domain `imagepipeline.art` registered on Porkbun, Vercel nameservers
 - Automated deploy: `vercel --prod` (zero-downtime)
 - `www` → non-www 301 redirect
-- All 6 env vars set: `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `APP_URL`, `USDT_ADDRESS`, `USDT_CONTRACT`, `CRON_SECRET`
-- Build optimizations: `.js` extensions for Edge Functions, `declare var process` in API files
+- All env vars set: KV, USDT, CRON, APP_URL, RESEND_API_KEY, RECEIPT_FROM_EMAIL, VITE_GA_MEASUREMENT_ID
 
 ### SEO / Discovery
 - Google Search Console: domain verified (DNS TXT record), sitemap submitted
 - `robots.txt` — Allow all, sitemap link
-- `sitemap.xml` — 3 URLs (/, /faq, /pricing)
+- `sitemap.xml` — 5 URLs (/, /faq, /pricing, /privacy, /terms)
 - OG tags: title, description, image (og-image.jpg 1200×630), canonical URL
 - Twitter card: summary_large_image
 - JSON-LD: SoftwareApplication (homepage) + FAQPage (/faq)
@@ -63,10 +103,16 @@
 ### Pages
 | URL | Content |
 |-----|---------|
-| `/` | Landing page (hero, features, CTA) |
+| `/` | Landing page (hero, features, CTA, pricing section) |
 | `/editor` | Visual pipeline editor |
 | `/pricing` | Free / Pro ($10) / Lifetime ($30) with USDT payment |
-| `/faq` | 12 accordion questions, JSON-LD |
+| `/faq` | 12 accordion questions, JSON-LD — EN+RU |
+| `/privacy` | Privacy Policy |
+| `/terms` | Terms of Service |
+
+### Monitoring
+- **UptimeRobot** monitors `/api/health` every 5 minutes
+- Rate limiting abuse tracked in KV with 30-day retention
 
 ### Testing
 - 46 tests (Vitest + happy-dom + node-canvas)
@@ -75,62 +121,45 @@
 
 ## Not Done / Gaps
 
-### Missing Pages
-- No `/privacy` or `/terms` pages (linked in footer placeholder)
-- No blog or changelog
-
-### Technical
-- TronScan API has no fallback (if down, verify fails; should add Trongrid as backup)
-- No monitoring/alerting on KV healthcheck
-- No rate limiting logging / abuse tracking
-- No CSP nonce (acceptable — SPA without SSR)
-
-### Monetization
-- No Stripe/fiat option (intentional — crypto-only)
-- No subscription recurring billing (only one-time Pro/Lifetime)
-- No activation timeout UX (user stuck if TxID never confirms)
-
 ### Promotion / Growth
 - No Product Hunt listing
-- No Show HN post
+- No Show HN / Indie Hackers post
 - No Twitter/X presence
 - No demo GIF/screencast
 - No blog posts (Dev.to / Medium)
-- No analytics dashboard (only raw KV counters)
+- No referral program
+- No submission to directories (AlternativeTo, G2, etc.)
 
-### Polish
-- No PWA manifest / offline support (editor depends on React Flow, unlikely to work offline)
-- No i18n
-- No keyboard shortcuts
-- No undo/redo for node edits
-- No auto-save pipeline drafts
-- No image preview thumbnails in file list
-- No drag-to-reorder files
-- No batch configuration (different settings per image — all images share one pipeline)
+### Features
+- No per-image configuration (all images share one pipeline)
+- No Stripe/fiat option (intentional — crypto-only)
+- No subscription billing (only one-time Pro/Lifetime)
+- No CSP nonce (acceptable — SPA without SSR)
+- No blog or changelog
 
 ## Key Files Reference
 
 | File | Purpose |
 |------|---------|
-| `api/` | 14 Edge Functions |
+| `api/` | 16 Edge Functions |
 | `api/_shared/kv.ts` | REST KV client (get/set/del/incr/expire/ttl/zadd/zcard/zremrangebyscore) |
-| `src/stores/user.store.ts` | Plan, usage, BroadcastChannel sync |
-| `src/stores/pipeline.store.ts` | Nodes, edges, add/remove node |
-| `src/stores/files.store.ts` | File list, status, add/remove |
-| `src/stores/ui.store.ts` | UI state (sidebar, onboarding, processing) |
-| `src/core/PipelineEngine.ts` | Processing loop, cycle detection |
-| `src/lib/edge-client.ts` | API client with exponential backoff |
-| `src/lib/sanitize.ts` | XSS + path traversal guard |
-| `src/components/processing/ProcessingModal.tsx` | Process flow, limit check, download ZIP |
-| `src/components/pricing/CryptoModal.tsx` | TxID input + verification |
-| `src/components/layout/UsageIndicator.tsx` | Compact + full usage bar, reset timer |
-| `src/components/onboarding/OnboardingTour.tsx` | 7-step guided tour |
-| `public/robots.txt` | Robots directive |
-| `public/sitemap.xml` | XML sitemap |
-| `public/og-image.jpg` | Open Graph preview image |
-| `public/favicon.svg` | `IP_icon.svg` |
-| `vercel.json` | Headers (CSP/HSTS), rewrites, redirects, cron |
-| `index.html` | Meta tags, OG, JSON-LD, skeleton |
+| `api/crypto/verify.ts` | TxID verification with TronScan + Trongrid fallback |
+| `api/crypto/check.ts` | Activation status check by sessionId |
+| `api/crypto/receipt.ts` | Payment confirmation email via Resend |
+| `api/health.ts` | Health endpoint (HEAD support for UptimeRobot) |
+| `api/check-limit.ts` | Rate limits + abuse logging (30d TTL) |
+| `src/i18n/config.ts` | i18next init + setLanguage() |
+| `src/i18n/en.json` | English translations (~250 keys) |
+| `src/i18n/ru.json` | Russian translations (~250 keys) |
+| `src/components/layout/LanguageSwitcher.tsx` | EN/RU toggle button |
+| `src/components/pipeline/NodeSettings.tsx` | Per-node settings panel, all i18n'd |
+| `src/components/pipeline/NodePalette.tsx` | Node palette with translated labels |
+| `src/lib/analytics.ts` | GA4 module (conditional on cookie consent) |
+| `src/lib/thumbnail.ts` | createImageBitmap thumbnail (128px max) |
+| `src/hooks/useVerifyTrc20.ts` | 2-min timeout polling |
+| `src/stores/pipeline.store.ts` | Nodes, edges, undo/redo snapshots |
+| `src/stores/files.store.ts` | File list, thumbnails, reorder |
+| `src/components/onboarding/OnboardingTour.tsx` | 6-step guided tour (i18n'd) |
 
 ## Env Variables (required for deploy)
 
@@ -142,12 +171,15 @@
 | `USDT_ADDRESS` | TRC-20 wallet for payments |
 | `USDT_CONTRACT` | USDT TRC-20 contract address |
 | `CRON_SECRET` | Secret auth for `/api/cleanup` |
+| `RESEND_API_KEY` | Resend API key for email receipts |
+| `RECEIPT_FROM_EMAIL` | Sender address for payment receipts |
+| `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 measurement ID |
 
-## Next Steps (Suggested Priority)
+## Next Steps (Priority)
 
 1. **Demo GIF** — 5-10s screencast for GitHub README + Product Hunt
 2. **Product Hunt launch** — prepare listing with demo + description
-3. **Privacy / Terms pages** — legal requirement if accepting payments
-4. **TronScan fallback** — add Trongrid API as secondary verification source
-5. **Analytics** — basic dashboard (number of users, verifications, pipeline shares)
-6. **Blog post** — "How I built a client-side batch image processor" (Dev.to / Medium)
+3. **Blog post** — "How I built a client-side batch image processor" (Dev.to / Medium)
+4. **Submit to directories** — AlternativeTo, G2, Capterra, SaaSHub
+5. **Twitter/X presence** — @imagepipeline account
+6. **Per-image config** — different settings per file (optional, post-launch)

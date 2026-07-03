@@ -1,10 +1,10 @@
 # Image Pipeline — План по продвижению и улучшению сайта
 ## Roadmap: от запуска до роста
 
-**Дата:** 2026-07-01  
+**Дата:** 2026-07-03  
 **Проект:** Image Pipeline (imagepipeline.art)  
 **Владелец:** Maxim Mitenkov (vimark.art)  
-**Статус:** MVP готов, домен подключён, SEO-база настроена, монетизация работает
+**Статус:** MVP + i18n (EN/RU), email receipts, GA4, мониторинг, PWA — всё готово к Product Hunt
 
 ---
 
@@ -213,15 +213,18 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 ```
 
 **Обязательно до launch:**
-- [ ] Privacy Policy (/privacy)
-- [ ] Terms of Service (/terms)
+- [x] Privacy Policy (/privacy)
+- [x] Terms of Service (/terms)
+- [x] Cookie consent banner (GDPR/CCPA)
+- [x] i18n (EN + RU)
+- [x] PWA manifest + meta tags
 - [ ] Demo GIF (5–10 сек)
 - [ ] Product Hunt ассеты (лого, скриншоты, описания)
 - [ ] GitHub README с GIF
 
 ### Итерация 2: "Trust & Polish" (Неделя 3–4)
 
-**Цель:** Укрепить доверие и улучшить UX.
+**Цель:** Укрепить доверие и улучшить UX. ✅ **Выполнено**
 
 ```
 Пн-Вт: Privacy Policy + Terms + Cookie banner
@@ -236,10 +239,12 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 **Цель:** Масштабирование трафика и монетизации.
 
 ```
-Неделя 5: TronScan fallback + activation UX + GA4 events
-Неделя 6: Blog (Dev.to, Medium) + YouTube screencast
-Неделя 7: Referral program + Pinterest + Dribbble
-Неделя 8: i18n (RU) + per-image config + analytics dashboard
+Неделя 5: TronScan fallback + activation UX + GA4 events   ✅
+Неделя 6: Payment confirmation email (Resend)              ✅
+Неделя 7: i18n (EN + RU) node settings + FAQ               ✅
+Неделя 8: Blog (Dev.to, Medium) + YouTube screencast       ❌
+Неделя 9: Referral program + Pinterest + Dribbble          ❌
+Неделя 10: per-image config + analytics dashboard          ❌
 ```
 
 ---
@@ -293,17 +298,17 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 - [ ] Demo GIF готов и загружен
 - [ ] Product Hunt пост написан и отредактирован
 - [ ] GitHub README обновлён
-- [ ] Privacy Policy + Terms опубликованы
-- [ ] Cookie banner добавлен
-- [ ] Все метрики GA4 настроены
-- [ ] Backup plan: если сервер упадёт, что делать
+- [x] Privacy Policy + Terms опубликованы
+- [x] Cookie banner добавлен
+- [x] Все метрики GA4 настроены
+- [x] Backup plan: если сервер упадёт, что делать (UptimeRobot)
 
 ### За 1 день до launch:
 - [ ] Проверить `imagepipeline.art` на всех устройствах (mobile, desktop)
 - [ ] Проверить платёжный flow (купить Pro самому)
-- [ ] Проверить email-уведомления (если настроены)
+- [x] Проверить email-уведомления (Resend подтверждён)
 - [ ] Написать maker comment для Product Hunt
-- [ ] Подготовить ответы на частые вопросы (FAQ)
+- [x] Подготовить ответы на частые вопросы (FAQ — 12 вопросов, EN+RU)
 
 ### В день launch:
 - [ ] 00:01 PST — опубликовать на Product Hunt
@@ -328,6 +333,6 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 
 ---
 
-*Документ составлен: 2026-07-01*  
+*Документ составлен: 2026-07-01, обновлён: 2026-07-03*  
 *Владелец: Maxim Mitenkov (vimark.art)*  
 *Проект: https://imagepipeline.art*

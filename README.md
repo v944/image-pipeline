@@ -17,15 +17,25 @@
 - **Visual node editor** — drag and drop nodes to build custom image pipelines
 - **9 node types**: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Rename, Export
 - **Batch processing** — run the same pipeline on multiple images at once
-- **ZIP export** — download all processed images as a single ZIP
+- **ZIP export** — download all processed images as a single ZIP (via Web Worker)
 - **100% private** — everything runs in your browser. No uploads, no servers
 - **Freemium** — free for basic use (10 files, 4 nodes, 10 batches/day). Pro and Lifetime via USDT (TRC-20)
-- **Share pipelines** — export a share link that expires in 7 days
+- **Email receipts** — payment confirmation via Resend
+- **i18n** — English + Russian, toggle in header
+- **Keyboard shortcuts** — Ctrl+Z/Shift+Z (undo/redo), Ctrl+Enter (process), Delete (remove node)
+- **Image thumbnails** — 64×64 previews in file list
+- **Drag-to-reorder** — reorder files via drag and drop
+- **Undo/redo** — snapshot history for pipeline edits
+- **Auto-save** — draft pipelines persist in localStorage
+- **PWA manifest** — installable on mobile home screen
+- **Onboarding tour** — 6-step guided tour for new users
 - **No signup required** — just open the editor and start
 
 ## Demo
 
 ![App screenshot](https://imagepipeline.art/og-image.jpg)
+
+[Try it live →](https://imagepipeline.art)
 
 ## Getting Started
 
@@ -59,23 +69,28 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | State | Zustand 5 |
 | Styling | Tailwind CSS 4 |
 | Icons | Lucide React |
-| Animations | Framer Motion |
 | ZIP | JSZip (in Web Worker) |
+| i18n | react-i18next |
+| Analytics | Google Analytics 4 |
+| Email | Resend |
 | Backend | Vercel Edge Functions |
 | KV Store | Upstash Redis |
-| Payments | USDT (TRC-20) via TronScan API |
+| Payments | USDT (TRC-20) via TronScan + Trongrid |
+| Monitoring | UptimeRobot |
 | CI/CD | Vercel |
 
 ## Project Structure
 
 ```
-api/                        # Vercel Edge Functions (14 endpoints)
+api/                        # Vercel Edge Functions (16 endpoints)
   _shared/                  # Shared KV client, response helpers, types
-  health.ts                 # Health check + KV connectivity
+  health.ts                 # Health check + KV connectivity (+ HEAD support)
   event.ts                  # Anonymous analytics
-  check-limit.ts            # Rate limiting (sliding window)
+  check-limit.ts            # Rate limiting (sliding window) + abuse logging
   crypto/
-    verify.ts               # USDT TxID verification via TronScan
+    verify.ts               # USDT TxID verification (TronScan + Trongrid)
+    check.ts                # Activation status by sessionId
+    receipt.ts              # Payment confirmation email (Resend)
     config.ts               # Wallet address + prices
   pipeline/
     share.ts                # Create share link
@@ -83,18 +98,19 @@ api/                        # Vercel Edge Functions (14 endpoints)
   error.ts                  # Client error ingestion
   cleanup.ts                # Daily cron (3AM)
 src/
+  i18n/                     # Translation files (en.json, ru.json, config.ts)
   components/
     landing/                # Marketing page
-    layout/                 # Editor shell (header, sidebar, usage indicator)
-    files/                  # File upload + list
-    pipeline/               # Flow editor, node palette, settings, denoise preview
+    layout/                 # Editor shell (header, sidebar, LanguageSwitcher)
+    files/                  # File upload + list with thumbnails
+    pipeline/               # Flow editor (lazy loaded), node palette, settings
     nodes/                  # React Flow node components (BaseNode)
     processing/             # Processing modal + progress
     pricing/                # Pro/Lifetime pricing + crypto payment modal
     onboarding/             # Guided tour
   stores/                   # Zustand stores (user, files, pipeline, ui)
   core/                     # Pipeline engine + canvas operations
-  lib/                      # Edge client, sanitize, utils
+  lib/                      # Edge client, sanitize, analytics, thumbnails
   types/                    # TypeScript type definitions
 ```
 
@@ -104,15 +120,26 @@ All endpoints are deployed as Vercel Edge Functions at `https://imagepipeline.ar
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/health` | Server health + KV status |
+| `GET /api/health` | Server health + KV status (HEAD supported) |
 | `POST /api/event` | Anonymous usage event |
 | `GET /api/check-limit` | Check rate limit (session-based) |
 | `POST /api/crypto/verify` | Verify USDT TRC-20 transaction |
+| `GET /api/crypto/check` | Check activation status by sessionId |
+| `POST /api/crypto/receipt` | Send payment confirmation email |
 | `GET /api/crypto/config` | Wallet address + current prices |
 | `POST /api/pipeline/share` | Create shareable pipeline link |
 | `GET /api/pipeline/:id` | Load shared pipeline |
 | `POST /api/error` | Report client-side error |
 | `GET /api/cleanup` | Cron job (KV cleanup) |
+
+## i18n
+
+Image Pipeline supports English and Russian. The language toggle is in the app header.
+
+- Powered by **react-i18next**
+- Language preference persisted in `localStorage("ip-lang")`
+- Translation files: `src/i18n/en.json` and `src/i18n/ru.json`
+- All UI strings covered: landing, editor, node settings, FAQ, pricing, onboarding
 
 ## Deployment
 
@@ -132,6 +159,9 @@ Required environment variables:
 | `USDT_CONTRACT` | USDT TRC-20 contract address |
 | `CRON_SECRET` | Secret for cron endpoint |
 | `APP_URL` | Application base URL |
+| `RESEND_API_KEY` | Resend API key for email receipts |
+| `RECEIPT_FROM_EMAIL` | Sender email for receipts |
+| `VITE_GA_MEASUREMENT_ID` | Google Analytics 4 measurement ID |
 
 ## License
 
