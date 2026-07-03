@@ -38,8 +38,9 @@ export const useUserStore = create<UserState>()(
         };
       }
 
+      const isDev = typeof location !== "undefined" && location.hostname === "localhost";
       return {
-        plan: "free",
+        plan: isDev ? "lifetime" : "free",
         sessionId: generateSessionId(),
         proExpiresAt: null,
         usage: { filesProcessed: 0, batchesProcessed: 0 },
@@ -64,6 +65,8 @@ export const useUserStore = create<UserState>()(
         resetUsage: () => set({ usage: { filesProcessed: 0, batchesProcessed: 0 } }),
 
         checkServerLimit: async (limitType) => {
+          const isDev = typeof location !== "undefined" && location.hostname === "localhost";
+          if (isDev) return { allowed: true, limit: Infinity, resetAt: null };
           const { sessionId } = get();
           try {
             const result = await edgeClient.checkLimit(sessionId, limitType);
