@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useFilesStore } from "../../stores/files.store";
 import { DenoisePreview } from "./DenoisePreview";
@@ -6,6 +7,7 @@ import { DenoisePreview } from "./DenoisePreview";
 interface Size { w: number; h: number }
 
 export function NodeSettings() {
+  const { t } = useTranslation();
   const selectedNodeId = usePipelineStore((s) => s.selectedNodeId);
   const nodes = usePipelineStore((s) => s.nodes);
   const updateNodeData = usePipelineStore((s) => s.updateNodeData);
@@ -15,7 +17,7 @@ export function NodeSettings() {
   if (!node) {
     return (
       <div className="p-4 text-center text-gray-500 text-sm mt-8">
-        Select a node to edit its settings
+        {t("settings.emptyState")}
       </div>
     );
   }
@@ -27,53 +29,53 @@ export function NodeSettings() {
   return (
     <div className="p-4 space-y-4">
       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-        {node.type.charAt(0).toUpperCase() + node.type.slice(1)} Settings
+        {t("settings.header", { type: t("nodePalette." + node.type) })}
       </div>
 
       {node.type === "resize" && (
         <>
-          <Field label="Width" hint="px, leave empty for auto">
+          <Field label={t("settings.resize.width")} hint={t("settings.resize.widthHint")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
               value={(node.data.width as string) || ""}
               onChange={(e) => handleChange("width", e.target.value ? Number(e.target.value) : null)}
-              placeholder="Auto"
+              placeholder={t("settings.resize.widthPlaceholder")}
             />
           </Field>
-          <Field label="Height" hint="px, leave empty for auto">
+          <Field label={t("settings.resize.height")} hint={t("settings.resize.heightHint")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
               value={(node.data.height as string) || ""}
               onChange={(e) => handleChange("height", e.target.value ? Number(e.target.value) : null)}
-              placeholder="Auto"
+              placeholder={t("settings.resize.heightPlaceholder")}
             />
           </Field>
           <SelectField
-            label="Mode"
+            label={t("settings.resize.mode")}
             value={node.data.mode as string}
             onChange={(v) => handleChange("mode", v)}
             options={[
-              { value: "fit", label: "Fit" },
-              { value: "fill", label: "Fill" },
-              { value: "stretch", label: "Stretch" },
+              { value: "fit", label: t("settings.resize.modeFit") },
+              { value: "fill", label: t("settings.resize.modeFill") },
+              { value: "stretch", label: t("settings.resize.modeStretch") },
             ]}
           />
           <SelectField
-            label="Algorithm"
+            label={t("settings.resize.algorithm")}
             value={node.data.algorithm as string}
             onChange={(v) => handleChange("algorithm", v)}
             options={[
-              { value: "auto", label: "Standard (Canvas)" },
-              { value: "lanczos", label: "Lanczos3 (Sharper)" },
+              { value: "auto", label: t("settings.resize.algorithmStandard") },
+              { value: "lanczos", label: t("settings.resize.algorithmLanczos") },
             ]}
-            hint="Recommended for upscaling"
+            hint={t("settings.resize.algorithmHint")}
           />
           {(node.data.algorithm as string) === "lanczos" && (
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <span className="text-amber-400 text-xs leading-relaxed flex-1">
-                Lanczos3 processes each pixel individually and may be noticeably slower on large images (&gt;5 MP).
+                {t("settings.resize.lanczosWarning")}
               </span>
             </div>
           )}
@@ -83,14 +85,14 @@ export function NodeSettings() {
       {node.type === "crop" && (
         <>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-400">Crop Preview</label>
+            <label className="text-xs font-medium text-gray-400">{t("settings.crop.preview")}</label>
             <CropPreview
               nodeId={node.id}
               data={node.data}
               onUpdate={(d) => updateNodeData(node.id, d)}
             />
           </div>
-          <Field label="X">
+          <Field label={t("settings.crop.x")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
@@ -98,7 +100,7 @@ export function NodeSettings() {
               onChange={(e) => handleChange("x", Number(e.target.value))}
             />
           </Field>
-          <Field label="Y">
+          <Field label={t("settings.crop.y")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
@@ -106,7 +108,7 @@ export function NodeSettings() {
               onChange={(e) => handleChange("y", Number(e.target.value))}
             />
           </Field>
-          <Field label="Width">
+          <Field label={t("settings.crop.width")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
@@ -114,7 +116,7 @@ export function NodeSettings() {
               onChange={(e) => handleChange("width", Number(e.target.value))}
             />
           </Field>
-          <Field label="Height">
+          <Field label={t("settings.crop.height")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
@@ -123,12 +125,12 @@ export function NodeSettings() {
             />
           </Field>
           <SelectField
-            label="Unit"
+            label={t("settings.crop.unit")}
             value={node.data.unit as string}
             onChange={(v) => handleChange("unit", v)}
             options={[
-              { value: "px", label: "Pixels" },
-              { value: "percent", label: "Percent" },
+              { value: "px", label: t("settings.crop.unitPixels") },
+              { value: "percent", label: t("settings.crop.unitPercent") },
             ]}
           />
         </>
@@ -136,7 +138,7 @@ export function NodeSettings() {
 
       {node.type === "compress" && (
         <>
-          <Field label="Quality" hint="1-100">
+          <Field label={t("settings.compress.quality")} hint={t("settings.compress.qualityHint")}>
             <input
               type="range"
               min="1"
@@ -148,12 +150,12 @@ export function NodeSettings() {
             <span className="text-xs text-gray-400">{node.data.quality as number}%</span>
           </Field>
           <SelectField
-            label="Method"
+            label={t("settings.compress.method")}
             value={node.data.method as string}
             onChange={(v) => handleChange("method", v)}
             options={[
-              { value: "lossy", label: "Lossy" },
-              { value: "lossless", label: "Lossless" },
+              { value: "lossy", label: t("settings.compress.methodLossy") },
+              { value: "lossless", label: t("settings.compress.methodLossless") },
             ]}
           />
         </>
@@ -161,7 +163,7 @@ export function NodeSettings() {
 
       {node.type === "format" && (
         <SelectField
-          label="Target Format"
+          label={t("settings.format.targetFormat")}
           value={node.data.targetFormat as string}
           onChange={(v) => handleChange("targetFormat", v)}
           options={[
@@ -175,28 +177,28 @@ export function NodeSettings() {
 
       {node.type === "watermark" && (
         <>
-          <Field label="Text">
+          <Field label={t("settings.watermark.text")}>
             <input
               type="text"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
               value={(node.data.text as string) || ""}
               onChange={(e) => handleChange("text", e.target.value)}
-              placeholder="© Your Name"
+              placeholder={t("settings.watermark.textPlaceholder")}
             />
           </Field>
           <SelectField
-            label="Position"
+            label={t("settings.watermark.position")}
             value={node.data.position as string}
             onChange={(v) => handleChange("position", v)}
             options={[
-              { value: "bottom-right", label: "Bottom Right" },
-              { value: "bottom-left", label: "Bottom Left" },
-              { value: "top-right", label: "Top Right" },
-              { value: "top-left", label: "Top Left" },
-              { value: "center", label: "Center" },
+              { value: "bottom-right", label: t("settings.watermark.posBottomRight") },
+              { value: "bottom-left", label: t("settings.watermark.posBottomLeft") },
+              { value: "top-right", label: t("settings.watermark.posTopRight") },
+              { value: "top-left", label: t("settings.watermark.posTopLeft") },
+              { value: "center", label: t("settings.watermark.posCenter") },
             ]}
           />
-          <Field label="Font Size">
+          <Field label={t("settings.watermark.fontSize")}>
             <input
               type="number"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200"
@@ -204,7 +206,7 @@ export function NodeSettings() {
               onChange={(e) => handleChange("fontSize", Number(e.target.value))}
             />
           </Field>
-          <Field label="Opacity" hint="0-1">
+          <Field label={t("settings.watermark.opacity")} hint={t("settings.watermark.opacityHint")}>
             <input
               type="range"
               min="0"
@@ -226,16 +228,16 @@ export function NodeSettings() {
             radius={node.data.radius as number}
           />
           <SelectField
-            label="Method"
+            label={t("settings.denoise.method")}
             value={node.data.method as string}
             onChange={(v) => handleChange("method", v)}
             options={[
-              { value: "median", label: "Median Filter" },
-              { value: "bilateral", label: "Bilateral Filter" },
+              { value: "median", label: t("settings.denoise.methodMedian") },
+              { value: "bilateral", label: t("settings.denoise.methodBilateral") },
             ]}
-            hint="Median is faster, bilateral preserves edges"
+            hint={t("settings.denoise.methodHint")}
           />
-          <Field label="Strength" hint="1-10">
+          <Field label={t("settings.denoise.strength")} hint={t("settings.denoise.strengthHint")}>
             <input
               type="range"
               min="1"
@@ -246,7 +248,7 @@ export function NodeSettings() {
               onChange={(e) => handleChange("strength", Number(e.target.value))}
             />
           </Field>
-          <Field label="Radius" hint="1-10">
+          <Field label={t("settings.denoise.radius")} hint={t("settings.denoise.radiusHint")}>
             <input
               type="range"
               min="1"
@@ -261,7 +263,7 @@ export function NodeSettings() {
       )}
 
       {node.type === "rename" && (
-        <Field label="Pattern" hint="{original}_{index}">
+        <Field label={t("settings.rename.pattern")} hint={t("settings.rename.patternHint")}>
           <input
             type="text"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono"
@@ -273,7 +275,7 @@ export function NodeSettings() {
 
       {node.type === "load" && (
         <FileSelectField
-          label="Source File"
+          label={t("settings.load.sourceFile")}
           value={node.data.fileId as string | null}
           onChange={(v) => handleChange("fileId", v)}
         />
@@ -282,7 +284,7 @@ export function NodeSettings() {
       {node.type === "export" && (
         <>
           <SelectField
-            label="Format"
+            label={t("settings.export.format")}
             value={node.data.format as string}
             onChange={(v) => handleChange("format", v)}
             options={[
@@ -291,7 +293,7 @@ export function NodeSettings() {
               { value: "WebP", label: "WebP" },
             ]}
           />
-          <Field label="Quality" hint="1-100">
+          <Field label={t("settings.export.quality")} hint={t("settings.export.qualityHint")}>
             <input
               type="range"
               min="1"
@@ -336,6 +338,7 @@ function CropPreview({
   data: Record<string, unknown>;
   onUpdate: (d: Record<string, unknown>) => void;
 }) {
+  const { t } = useTranslation();
   const nodes = usePipelineStore((s) => s.nodes);
   const edges = usePipelineStore((s) => s.edges);
   const files = useFilesStore((s) => s.files);
@@ -452,7 +455,7 @@ function CropPreview({
   if (!file) {
     return (
       <div className="text-xs text-gray-500 text-center py-4 border border-dashed border-white/10 rounded-lg">
-        Connect a Load node with a file
+        {t("settings.crop.noFile")}
       </div>
     );
   }
@@ -460,7 +463,7 @@ function CropPreview({
   if (!img) {
     return (
       <div className="text-xs text-gray-500 text-center py-4 border border-dashed border-white/10 rounded-lg">
-        Loading image...
+        {t("settings.crop.loading")}
       </div>
     );
   }
@@ -513,6 +516,7 @@ function FileSelectField({
   value: string | null;
   onChange: (v: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const files = useFilesStore((s) => s.files);
   const activeFiles = files.filter((f) => f.status !== "blocked");
   const onChangeRef = useRef(onChange);
@@ -533,7 +537,7 @@ function FileSelectField({
         onChange={(e) => onChange(e.target.value || null)}
       >
         <option value="" className="bg-[#0D0D14]" disabled>
-          {activeFiles.length === 0 ? "No processable files" : "Select a file..."}
+          {activeFiles.length === 0 ? t("settings.load.noFiles") : t("settings.load.selectFile")}
         </option>
         {activeFiles.map((f) => (
           <option key={f.id} value={f.id} className="bg-[#0D0D14]">

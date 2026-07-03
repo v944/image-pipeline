@@ -210,6 +210,86 @@
     "filesToday": "{{count}} / {{limit}} files today",
     "resetsAt": "Resets in {{time}}"
   },
+  "settings": {
+    "emptyState": "Select a node to edit its settings",
+    "header": "{{type}} Settings",
+    "resize": {
+      "width": "Width",
+      "widthHint": "px, leave empty for auto",
+      "height": "Height",
+      "heightHint": "px, leave empty for auto",
+      "widthPlaceholder": "Auto",
+      "heightPlaceholder": "Auto",
+      "mode": "Mode",
+      "modeFit": "Fit",
+      "modeFill": "Fill",
+      "modeStretch": "Stretch",
+      "algorithm": "Algorithm",
+      "algorithmStandard": "Standard (Canvas)",
+      "algorithmLanczos": "Lanczos3 (Sharper)",
+      "algorithmHint": "Recommended for upscaling",
+      "lanczosWarning": "Lanczos3 processes each pixel individually and may be noticeably slower on large images (>5 MP)."
+    },
+    "crop": {
+      "preview": "Crop Preview",
+      "x": "X",
+      "y": "Y",
+      "width": "Width",
+      "height": "Height",
+      "unit": "Unit",
+      "unitPixels": "Pixels",
+      "unitPercent": "Percent",
+      "noFile": "Connect a Load node with a file",
+      "loading": "Loading image..."
+    },
+    "compress": {
+      "quality": "Quality",
+      "qualityHint": "1-100",
+      "method": "Method",
+      "methodLossy": "Lossy",
+      "methodLossless": "Lossless"
+    },
+    "format": {
+      "targetFormat": "Target Format"
+    },
+    "watermark": {
+      "text": "Text",
+      "textPlaceholder": "© Your Name",
+      "position": "Position",
+      "posBottomRight": "Bottom Right",
+      "posBottomLeft": "Bottom Left",
+      "posTopRight": "Top Right",
+      "posTopLeft": "Top Left",
+      "posCenter": "Center",
+      "fontSize": "Font Size",
+      "opacity": "Opacity",
+      "opacityHint": "0-1"
+    },
+    "denoise": {
+      "method": "Method",
+      "methodMedian": "Median Filter",
+      "methodBilateral": "Bilateral Filter",
+      "methodHint": "Median is faster, bilateral preserves edges",
+      "strength": "Strength",
+      "strengthHint": "1-10",
+      "radius": "Radius",
+      "radiusHint": "1-10"
+    },
+    "rename": {
+      "pattern": "Pattern",
+      "patternHint": "{{original}}_{{index}}"
+    },
+    "load": {
+      "sourceFile": "Source File",
+      "noFiles": "No processable files",
+      "selectFile": "Select a file..."
+    },
+    "export": {
+      "format": "Format",
+      "quality": "Quality",
+      "qualityHint": "1-100"
+    }
+  },
   "onboarding": {
     "step1Title": "Welcome to Image Pipeline",
     "step1Desc": "Let's walk through the basics in 30 seconds.",

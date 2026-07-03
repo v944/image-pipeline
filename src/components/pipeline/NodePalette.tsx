@@ -33,6 +33,11 @@ export function NodePalette() {
       y: window.innerHeight / 2,
     });
     addNode(type, position);
+    const store = usePipelineStore.getState();
+    const added = store.nodes[store.nodes.length - 1];
+    if (added && added.type === type) {
+      store.updateNodeData(added.id, { label: t("nodePalette." + type) });
+    }
     trackEvent(Events.NODE_ADDED, { nodeType: type, method: "click" });
   };
 

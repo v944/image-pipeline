@@ -210,6 +210,86 @@
     "filesToday": "{{count}} / {{limit}} файлов сегодня",
     "resetsAt": "Сброс через {{time}}"
   },
+  "settings": {
+    "emptyState": "Выберите ноду для настройки",
+    "header": "Настройки: {{type}}",
+    "resize": {
+      "width": "Ширина",
+      "widthHint": "px, оставьте пустым для авто",
+      "height": "Высота",
+      "heightHint": "px, оставьте пустым для авто",
+      "widthPlaceholder": "Авто",
+      "heightPlaceholder": "Авто",
+      "mode": "Режим",
+      "modeFit": "Вписать",
+      "modeFill": "Заполнить",
+      "modeStretch": "Растянуть",
+      "algorithm": "Алгоритм",
+      "algorithmStandard": "Стандартный (Canvas)",
+      "algorithmLanczos": "Lanczos3 (Чётче)",
+      "algorithmHint": "Рекомендуется для увеличения",
+      "lanczosWarning": "Lanczos3 обрабатывает каждый пиксель индивидуально и может быть заметно медленнее на больших изображениях (>5 МП)."
+    },
+    "crop": {
+      "preview": "Превью кадрирования",
+      "x": "X",
+      "y": "Y",
+      "width": "Ширина",
+      "height": "Высота",
+      "unit": "Единицы",
+      "unitPixels": "Пиксели",
+      "unitPercent": "Проценты",
+      "noFile": "Подключите ноду Load с файлом",
+      "loading": "Загрузка изображения..."
+    },
+    "compress": {
+      "quality": "Качество",
+      "qualityHint": "1-100",
+      "method": "Метод",
+      "methodLossy": "С потерями",
+      "methodLossless": "Без потерь"
+    },
+    "format": {
+      "targetFormat": "Целевой формат"
+    },
+    "watermark": {
+      "text": "Текст",
+      "textPlaceholder": "© Ваше Имя",
+      "position": "Позиция",
+      "posBottomRight": "Снизу справа",
+      "posBottomLeft": "Снизу слева",
+      "posTopRight": "Сверху справа",
+      "posTopLeft": "Сверху слева",
+      "posCenter": "По центру",
+      "fontSize": "Размер шрифта",
+      "opacity": "Прозрачность",
+      "opacityHint": "0-1"
+    },
+    "denoise": {
+      "method": "Метод",
+      "methodMedian": "Медианный фильтр",
+      "methodBilateral": "Билатеральный фильтр",
+      "methodHint": "Медианный быстрее, билатеральный сохраняет края",
+      "strength": "Сила",
+      "strengthHint": "1-10",
+      "radius": "Радиус",
+      "radiusHint": "1-10"
+    },
+    "rename": {
+      "pattern": "Шаблон",
+      "patternHint": "{{original}}_{{index}}"
+    },
+    "load": {
+      "sourceFile": "Исходный файл",
+      "noFiles": "Нет доступных файлов",
+      "selectFile": "Выберите файл..."
+    },
+    "export": {
+      "format": "Формат",
+      "quality": "Качество",
+      "qualityHint": "1-100"
+    }
+  },
   "onboarding": {
     "step1Title": "Добро пожаловать в Image Pipeline",
     "step1Desc": "Пройдёмся по основам за 30 секунд.",
