@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../../lib";
 import type { NodeType } from "../../types";
 
@@ -34,6 +35,7 @@ interface BaseNodeData {
 }
 
 export const BaseNode = memo(({ data, selected }: NodeProps) => {
+  const { t } = useTranslation();
   const d = data as BaseNodeData;
   const nodeType = d.type;
   const icon = NODE_ICONS[nodeType] || "📄";
@@ -57,10 +59,10 @@ export const BaseNode = memo(({ data, selected }: NodeProps) => {
         <span className="text-lg">{icon}</span>
         <div>
           <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-            {nodeType}
+            {t("nodePalette." + nodeType)}
           </div>
           <div className="text-sm font-semibold text-gray-100">
-            {d.label || nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}
+            {d.label || t("nodePalette." + nodeType)}
           </div>
         </div>
       </div>

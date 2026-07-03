@@ -13,6 +13,7 @@ import {
   type XYPosition,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useTranslation } from "react-i18next";
 import { nodeTypes } from "../nodes";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import type { NodeType } from "../../types";
@@ -99,6 +100,8 @@ export function FlowEditor() {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
+  const { t } = useTranslation();
+
   const onDrop = useCallback(
     (event: DragEvent) => {
       event.preventDefault();
@@ -111,9 +114,14 @@ export function FlowEditor() {
         y: event.clientY - bounds.top - 20,
       };
       addNode(type, position);
+      const store = usePipelineStore.getState();
+      const added = store.nodes[store.nodes.length - 1];
+      if (added && added.type === type) {
+        store.updateNodeData(added.id, { label: t("nodePalette." + type) });
+      }
       trackEvent(Events.NODE_ADDED, { nodeType: type, method: "drag" });
     },
-    [addNode]
+    [addNode, t]
   );
 
   return (
