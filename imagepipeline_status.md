@@ -56,7 +56,10 @@
 - Editor: header (plan badge, save/process), sidebar tabs, file uploader, file list
 - Node palette: all 9 node labels + descriptions
 - **Node settings**: all labels, hints, options, placeholders for all 9 node types
-- **Node canvas names**: translated label set on node creation
+- **Node canvas names**: translated label set on node creation (click palette + drag-drop)
+- **Settings panel header**: translated title + close button
+- **BaseNode subtitle**: translated node type (was raw English `"load"`/`"resize"`)
+- **MiniMap**: shows node structure (fixed — added explicit width/height to flowNodes)
 - Pricing page: plan names, features, "Popular", "Current Plan"
 - CryptoModal: amount/plan/network/txId/email labels, all status messages (verified/checking/not-found/timeout/receipt)
 - Processing modal: progress, completion, free limit reached

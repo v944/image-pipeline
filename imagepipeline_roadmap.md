@@ -4,7 +4,7 @@
 **Дата:** 2026-07-03  
 **Проект:** Image Pipeline (imagepipeline.art)  
 **Владелец:** Maxim Mitenkov (vimark.art)  
-**Статус:** MVP + i18n (EN/RU), email receipts, GA4, мониторинг, PWA — всё готово к Product Hunt
+**Статус:** MVP + i18n (EN/RU), email receipts, GA4, мониторинг, PWA, MiniMap — всё готово к Product Hunt
 
 ---
 
@@ -241,7 +241,7 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 ```
 Неделя 5: TronScan fallback + activation UX + GA4 events   ✅
 Неделя 6: Payment confirmation email (Resend)              ✅
-Неделя 7: i18n (EN + RU) node settings + FAQ               ✅
+Неделя 7: i18n node settings + FAQ + canvas labels + MiniMap ✅
 Неделя 8: Blog (Dev.to, Medium) + YouTube screencast       ❌
 Неделя 9: Referral program + Pinterest + Dribbble          ❌
 Неделя 10: per-image config + analytics dashboard          ❌

@@ -28,6 +28,7 @@
 - **Undo/redo** — snapshot history for pipeline edits
 - **Auto-save** — draft pipelines persist in localStorage
 - **PWA manifest** — installable on mobile home screen
+- **MiniMap** — bird's-eye view of the node pipeline in the canvas corner
 - **Onboarding tour** — 6-step guided tour for new users
 - **No signup required** — just open the editor and start
 
