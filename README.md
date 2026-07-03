@@ -34,7 +34,7 @@
 
 ## Demo
 
-![App screenshot](https://imagepipeline.art/og-image.jpg)
+![Demo](https://imagepipeline.art/demo.gif)
 
 [Try it live →](https://imagepipeline.art)
 
