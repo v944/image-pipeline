@@ -1,14 +1,8 @@
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
-const STORAGE_KEY = "ip-cookie-consent";
 let loaded = false;
 
-function hasConsent(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(STORAGE_KEY) === "accepted";
-}
-
 function loadGtag(): void {
-  if (loaded || !GA_MEASUREMENT_ID || !hasConsent()) return;
+  if (loaded || !GA_MEASUREMENT_ID) return;
   loaded = true;
 
   const script = document.createElement("script");
@@ -33,7 +27,7 @@ export function trackEvent(
   eventParams?: Record<string, string | number | boolean>,
 ): void {
   loadGtag();
-  if (GA_MEASUREMENT_ID && hasConsent() && window.gtag) {
+  if (GA_MEASUREMENT_ID && window.gtag) {
     window.gtag("event", eventName, eventParams);
   }
 }
