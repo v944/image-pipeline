@@ -7,6 +7,7 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { TermsPage } from "./pages/TermsPage";
 import { CookieBanner } from "./components/layout/CookieBanner";
 import { SEOHead } from "./components/SEOHead";
+import { Analytics } from "@vercel/analytics/react";
 function PricingPageWrapper() {
   return (
     <div className="min-h-screen bg-[#0D0D14] text-gray-100 overflow-y-auto">
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CookieBanner />
+      <Analytics />
     </BrowserRouter>
   );
 }
