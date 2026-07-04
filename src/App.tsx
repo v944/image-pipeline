@@ -6,6 +6,7 @@ import { FaqPage } from "./pages/FaqPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { TermsPage } from "./pages/TermsPage";
 import { CookieBanner } from "./components/layout/CookieBanner";
+import { SEOHead } from "./components/SEOHead";
 function PricingPageWrapper() {
   return (
     <div className="min-h-screen bg-[#0D0D14] text-gray-100 overflow-y-auto">
@@ -25,6 +26,7 @@ function PricingPageWrapper() {
 export default function App() {
   return (
     <BrowserRouter>
+      <SEOHead />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPageWrapper />} />
