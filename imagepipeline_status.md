@@ -1,4 +1,4 @@
-# Image Pipeline — Status Summary (2026-07-03)
+# Image Pipeline — Status Summary (2026-07-11)
 
 ## Project Info
 - **Domain:** `https://imagepipeline.art` (non-www canonical, Vercel nameservers)
@@ -14,7 +14,7 @@
 ## What's Done
 
 ### Product / Core
-- Visual node editor (React Flow @xyflow/react 12), 9 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Rename, Export
+- Visual node editor (React Flow @xyflow/react 12), 11 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Emotion, Saturation, Rename, Export
 - Pipeline engine with cycle detection, progress tracking, per-file error handling
 - ZIP export via Web Worker (CSP-safe, separate chunk)
 - Batch processing (runs all images through the same pipeline)
@@ -32,16 +32,23 @@
 - `/api/crypto/check` endpoint — manually check activation status by sessionId
 
 ### UI / UX
-- Landing page with features, CTA to editor, footer links (GitHub, FAQ, Privacy, Terms)
+- Landing page: hero with demo GIF, CTA «Try it free — no signup», trust badges, "How it works" (3 steps), social proof (PH badge, stats, testimonial), email subscribe form
+- Footer badges: Product Hunt (dark) + Launch Llama + Uneed (Launching Soon, dark)
+- `/api/subscribe` — email capture → Upstash Redis (KV)
+- `/api/subscribers` — admin endpoint (key‑protected) to list all subscribers
+- `/api/newsletter` — manual newsletter send via Resend (batches of 10, admin key auth)
+- CSP updated: img-src allows producthunt.com, speaktechenglish.com
 - Editor layout: sidebar (Files/Nodes/Saved tabs), canvas, header (plan badge + UsageIndicator)
 - UsageIndicator: progress bar + daily reset timer + BroadcastChannel cross-tab sync
 - Onboarding tour (6 steps), stored in Zustand
 - File uploader with drag-drop, file list with status indicators (pending/processing/done/error/blocked)
 - **64×64 image thumbnails** in file list (createImageBitmap, 128px max dimension)
 - **Drag-to-reorder files** (HTML5 native DnD + Zustand store reorderFiles)
-- Node palette with drag-to-canvas
+- Node palette with drag-to-canvas — 11 node types
 - Per-node settings panel (opens on node select) — **fully translated EN+RU**
 - Denoise preview (before/after)
+- Emotion preview (before/after with upstream chain processing)
+- Saturation preview (before/after with upstream chain processing)
 - FAQ page (/faq) with 12 accordion items + JSON-LD — **translated EN+RU**
 - Privacy Policy (/privacy) and Terms of Service (/terms)
 - **PWA manifest** + apple-mobile-web-app meta tags
@@ -61,7 +68,7 @@
 - Landing page: hero, features, CTA, footer
 - Editor: header (plan badge, save/process), sidebar tabs, file uploader, file list
 - Node palette: all 9 node labels + descriptions
-- **Node settings**: all labels, hints, options, placeholders for all 9 node types
+- **Node settings**: all labels, hints, options, placeholders for all 11 node types
 - **Node canvas names**: translated label set on node creation (click palette + drag-drop)
 - **Settings panel header**: translated title + close button
 - **BaseNode subtitle**: translated node type (was raw English `"load"`/`"resize"`)
@@ -158,8 +165,13 @@
 | `api/health.ts` | Health endpoint (HEAD support for UptimeRobot) |
 | `api/check-limit.ts` | Rate limits + abuse logging (30d TTL) |
 | `src/i18n/config.ts` | i18next init + setLanguage() |
-| `src/i18n/en.json` | English translations (~250 keys) |
-| `src/i18n/ru.json` | Russian translations (~250 keys) |
+| `src/i18n/en.json` | English translations (~270 keys) |
+| `src/i18n/ru.json` | Russian translations (~270 keys) |
+| `src/core/canvas/emotion.ts` | Emotion filter — 5 color matrices (Neutral/Joy/Sadness/Calm/Tension) + intensity lerp |
+| `src/core/canvas/saturation.ts` | Saturation adjustment via HSL |
+| `src/components/pipeline/EmotionPreview.tsx` | Live before/after preview for Emotion node |
+| `src/components/pipeline/SaturationPreview.tsx` | Live before/after preview for Saturation node |
+| `src/components/pipeline/preview-utils.ts` | Upstream chain processing utility for previews |
 | `src/components/layout/LanguageSwitcher.tsx` | EN/RU toggle button |
 | `src/components/pipeline/NodeSettings.tsx` | Per-node settings panel, all i18n'd |
 | `src/components/pipeline/NodePalette.tsx` | Node palette with translated labels |

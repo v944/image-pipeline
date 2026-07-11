@@ -4,7 +4,9 @@
 **Дата:** 2026-07-03  
 **Проект:** Image Pipeline (imagepipeline.art)  
 **Владелец:** Maxim Mitenkov (vimark.art)  
-**Статус:** MVP + i18n (EN/RU), email receipts, GA4, мониторинг, PWA, MiniMap — всё готово к Product Hunt
+**Статус:** MVP + i18n (EN/RU), email receipts, GA4, мониторинг, PWA, MiniMap — всё готово к Product Hunt  
+**2026-07-09:** Landing page улучшен: demo GIF, CTA, trust badges, «How it works», соц.доказательство, email-подписка (KV), PH + Launch Llama + Uneed бейджи. Добавлены `/api/subscribers` (просмотр) и `/api/newsletter` (ручная рассылка через Resend). Деплой на imagepipeline.art.  
+**2026-07-11:** Добавлены ноды Emotion (цветокоррекция по эмоции: Joy, Sadness, Calm, Tension) и Saturation (настройка насыщенности со слайдером и числовым вводом). Live before/after preview с учётом upstream-цепи. FAQ обновлён.
 
 ---
 
@@ -333,6 +335,6 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 
 ---
 
-*Документ составлен: 2026-07-01, обновлён: 2026-07-03*  
+*Документ составлен: 2026-07-01, обновлён: 2026-07-11*  
 *Владелец: Maxim Mitenkov (vimark.art)*  
 *Проект: https://imagepipeline.art*
