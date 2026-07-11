@@ -55,6 +55,10 @@ function getDefaultNodeData(type: NodeType): Record<string, unknown> {
       return { format: "PNG", quality: 85, preserveMetadata: false };
     case "denoise":
       return { method: "median", strength: 2, radius: 3 };
+    case "emotion":
+      return { emotion: "neutral", intensity: 80, preview: true };
+    case "saturation":
+      return { saturation: 0 };
     case "load":
       return { fileId: null, includeSubfolders: false };
     default:

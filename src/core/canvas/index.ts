@@ -4,4 +4,6 @@ export { applyCompress } from "./compress";
 export { applyWatermark } from "./watermark";
 export { applyLanczos } from "./enhance";
 export { applyDenoise } from "./denoise";
+export { applyEmotionFilter } from "./emotion";
+export { applySaturation } from "./saturation";
 export { convertFormat, isFormatSupported, getMimeType } from "./format";

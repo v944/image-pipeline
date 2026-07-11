@@ -7,6 +7,8 @@ export type NodeType =
   | "watermark"
   | "rename"
   | "denoise"
+  | "emotion"
+  | "saturation"
   | "export";
 
 export interface PipelineNode {

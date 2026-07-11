@@ -18,6 +18,8 @@ export function NodePalette() {
     { type: "format", icon: "🔄", label: t("nodePalette.format"), description: t("nodePalette.formatDesc") },
     { type: "watermark", icon: "©", label: t("nodePalette.watermark"), description: t("nodePalette.watermarkDesc") },
     { type: "denoise", icon: "🧹", label: t("nodePalette.denoise"), description: t("nodePalette.denoiseDesc") },
+    { type: "emotion", icon: "🎭", label: t("nodePalette.emotion"), description: t("nodePalette.emotionDesc") },
+    { type: "saturation", icon: "🎨", label: t("nodePalette.saturation"), description: t("nodePalette.saturationDesc") },
     { type: "rename", icon: "✏️", label: t("nodePalette.rename"), description: t("nodePalette.renameDesc") },
     { type: "export", icon: "💾", label: t("nodePalette.export"), description: t("nodePalette.exportDesc") },
   ];

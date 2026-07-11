@@ -8,6 +8,8 @@ export const nodeTypes = {
   format: BaseNode,
   watermark: BaseNode,
   denoise: BaseNode,
+  emotion: BaseNode,
+  saturation: BaseNode,
   rename: BaseNode,
   export: BaseNode,
 };

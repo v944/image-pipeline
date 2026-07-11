@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useFilesStore } from "../../stores/files.store";
 import { DenoisePreview } from "./DenoisePreview";
+import { EmotionPreview } from "./EmotionPreview";
+import { SaturationPreview } from "./SaturationPreview";
 
 interface Size { w: number; h: number }
 
@@ -258,6 +260,93 @@ export function NodeSettings() {
               value={(node.data.radius as number) || 3}
               onChange={(e) => handleChange("radius", Number(e.target.value))}
             />
+          </Field>
+        </>
+      )}
+
+      {node.type === "emotion" && (
+        <>
+          <EmotionPreview
+            nodeId={node.id}
+            emotion={node.data.emotion as string}
+            intensity={node.data.intensity as number}
+            preview={(node.data.preview as boolean) ?? true}
+          />
+          <SelectField
+            label={t("settings.emotion.emotion")}
+            value={node.data.emotion as string}
+            onChange={(v) => handleChange("emotion", v)}
+            options={[
+              { value: "neutral", label: t("settings.emotion.emotionNeutral") },
+              { value: "joy", label: t("settings.emotion.emotionJoy") },
+              { value: "sadness", label: t("settings.emotion.emotionSadness") },
+              { value: "calm", label: t("settings.emotion.emotionCalm") },
+              { value: "tension", label: t("settings.emotion.emotionTension") },
+            ]}
+          />
+          <Field label={t("settings.emotion.intensity")} hint={t("settings.emotion.intensityHint")}>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              className="w-full accent-amber-500"
+              value={(node.data.intensity as number) ?? 80}
+              onChange={(e) => handleChange("intensity", Number(e.target.value))}
+            />
+            <span className="text-xs text-gray-400">{node.data.intensity as number}%</span>
+          </Field>
+          <Field label={t("settings.emotion.preview")}>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={(node.data.preview as boolean) ?? true}
+                onChange={(e) => handleChange("preview", e.target.checked)}
+              />
+              <div className="w-9 h-5 bg-white/10 rounded-full peer peer-checked:bg-amber-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+            </label>
+          </Field>
+        </>
+      )}
+
+      {node.type === "saturation" && (
+        <>
+          <SaturationPreview
+            nodeId={node.id}
+            saturation={node.data.saturation as number}
+          />
+          <Field label={t("settings.saturation.value")} hint={t("settings.saturation.valueHint")}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                step="1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.saturation as number) ?? 0}
+                onChange={(e) => handleChange("saturation", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-100"
+                max="100"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.saturation as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  let v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("saturation", Math.max(-100, Math.min(100, v)));
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-0.5">
+              <span>{t("settings.saturation.desaturate")}</span>
+              <span>{t("settings.saturation.original")}</span>
+              <span>{t("settings.saturation.saturate")}</span>
+            </div>
           </Field>
         </>
       )}
