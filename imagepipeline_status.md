@@ -1,4 +1,4 @@
-# Image Pipeline — Status Summary (2026-07-11)
+# Image Pipeline — Status Summary (2026-07-14)
 
 ## Project Info
 - **Domain:** `https://imagepipeline.art` (non-www canonical, Vercel nameservers)
@@ -14,7 +14,7 @@
 ## What's Done
 
 ### Product / Core
-- Visual node editor (React Flow @xyflow/react 12), 11 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Emotion, Saturation, Rename, Export
+- Visual node editor (React Flow @xyflow/react 12), 14 node types: Load, Resize, Crop, Compress, Format, Watermark, Denoise, Emotion, Saturation, Brightness, Contrast, Exposure, Rename, Export
 - Pipeline engine with cycle detection, progress tracking, per-file error handling
 - ZIP export via Web Worker (CSP-safe, separate chunk)
 - Batch processing (runs all images through the same pipeline)
@@ -44,11 +44,12 @@
 - File uploader with drag-drop, file list with status indicators (pending/processing/done/error/blocked)
 - **64×64 image thumbnails** in file list (createImageBitmap, 128px max dimension)
 - **Drag-to-reorder files** (HTML5 native DnD + Zustand store reorderFiles)
-- Node palette with drag-to-canvas — 11 node types
+- Node palette with drag-to-canvas — 14 node types
 - Per-node settings panel (opens on node select) — **fully translated EN+RU**
 - Denoise preview (before/after)
 - Emotion preview (before/after with upstream chain processing)
 - Saturation preview (before/after with upstream chain processing)
+- Preview improvements: 300px thumbnails, hover enlargement, click-to-open compare modal with slider
 - FAQ page (/faq) with 12 accordion items + JSON-LD — **translated EN+RU**
 - Privacy Policy (/privacy) and Terms of Service (/terms)
 - **PWA manifest** + apple-mobile-web-app meta tags
@@ -67,8 +68,8 @@
 - `LanguageSwitcher` component — toggles `localStorage("ip-lang")` + `i18n.changeLanguage()`
 - Landing page: hero, features, CTA, footer
 - Editor: header (plan badge, save/process), sidebar tabs, file uploader, file list
-- Node palette: all 9 node labels + descriptions
-- **Node settings**: all labels, hints, options, placeholders for all 11 node types
+- Node palette: all 14 node labels + descriptions
+- **Node settings**: all labels, hints, options, placeholders for all 14 node types
 - **Node canvas names**: translated label set on node creation (click palette + drag-drop)
 - **Settings panel header**: translated title + close button
 - **BaseNode subtitle**: translated node type (was raw English `"load"`/`"resize"`)
@@ -141,10 +142,9 @@
 - No Product Hunt listing
 - No Show HN / Indie Hackers post
 - No Twitter/X presence
-- No demo GIF/screencast
 - No blog posts (Dev.to / Medium)
 - No referral program
-- No submission to directories (AlternativeTo, G2, etc.)
+- No submission to directories (G2, Capterra, etc.)
 
 ### Features
 - No per-image configuration (all images share one pipeline)
@@ -165,13 +165,18 @@
 | `api/health.ts` | Health endpoint (HEAD support for UptimeRobot) |
 | `api/check-limit.ts` | Rate limits + abuse logging (30d TTL) |
 | `src/i18n/config.ts` | i18next init + setLanguage() |
-| `src/i18n/en.json` | English translations (~270 keys) |
-| `src/i18n/ru.json` | Russian translations (~270 keys) |
+| `src/i18n/en.json` | English translations (~310 keys) |
+| `src/i18n/ru.json` | Russian translations (~310 keys) |
 | `src/core/canvas/emotion.ts` | Emotion filter — 5 color matrices (Neutral/Joy/Sadness/Calm/Tension) + intensity lerp |
 | `src/core/canvas/saturation.ts` | Saturation adjustment via HSL |
 | `src/components/pipeline/EmotionPreview.tsx` | Live before/after preview for Emotion node |
 | `src/components/pipeline/SaturationPreview.tsx` | Live before/after preview for Saturation node |
 | `src/components/pipeline/preview-utils.ts` | Upstream chain processing utility for previews |
+| `src/components/pipeline/CompareModal.tsx` | Comparison modal with slider for before/after preview |
+| `src/components/pipeline/PreviewImage.tsx` | Preview image with hover enlargement |
+| `src/core/canvas/brightness.ts` | Brightness adjustment |
+| `src/core/canvas/contrast.ts` | Contrast adjustment |
+| `src/core/canvas/exposure.ts` | Exposure adjustment |
 | `src/components/layout/LanguageSwitcher.tsx` | EN/RU toggle button |
 | `src/components/pipeline/NodeSettings.tsx` | Per-node settings panel, all i18n'd |
 | `src/components/pipeline/NodePalette.tsx` | Node palette with translated labels |
@@ -201,6 +206,9 @@
 1. **Demo GIF** — ✅ done (deployed to https://imagepipeline.art/demo.gif)
 2. **Product Hunt launch** — prepare listing with demo + description
 3. **Blog post** — "How I built a client-side batch image processor" (Dev.to / Medium)
-4. **Submit to directories** — AlternativeTo, G2, Capterra, SaaSHub
+4. **Submit to directories** — ✅ AlternativeTo (live), G2, Capterra, SaaSHub — pending
 5. **Twitter/X presence** — @imagepipeline account
 6. **Per-image config** — different settings per file (optional, post-launch)
+7. **Noda Blur/Sharpen** — by user request
+8. **Noda Rotate/Flip** — by user request
+9. **Onboarding tooltips** — first-visit hints
