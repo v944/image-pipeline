@@ -5,6 +5,7 @@ import { useFilesStore } from "../../stores/files.store";
 import { DenoisePreview } from "./DenoisePreview";
 import { EmotionPreview } from "./EmotionPreview";
 import { SaturationPreview } from "./SaturationPreview";
+import { AdjustmentPreview } from "./AdjustmentPreview";
 
 interface Size { w: number; h: number }
 
@@ -352,64 +353,70 @@ export function NodeSettings() {
       )}
 
       {(node.type === "brightness" || node.type === "contrast") && (
-        <Field label={t(`settings.${node.type}.value`)} hint={t(`settings.${node.type}.valueHint`)}>
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              step="1"
-              className="flex-1 accent-amber-500"
-              value={(node.data.value as number) ?? 0}
-              onChange={(e) => handleChange("value", Number(e.target.value))}
-            />
-            <input
-              type="number"
-              min="-100"
-              max="100"
-              className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
-              value={(node.data.value as number) ?? 0}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === "") return;
-                const v = Number(raw);
-                if (isNaN(v)) return;
-                handleChange("value", Math.max(-100, Math.min(100, v)));
-              }}
-            />
-          </div>
-        </Field>
+        <>
+          <AdjustmentPreview nodeId={node.id} nodeType={node.type} value={(node.data.value as number) ?? 0} />
+          <Field label={t(`settings.${node.type}.value`)} hint={t(`settings.${node.type}.valueHint`)}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                step="1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => handleChange("value", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-100"
+                max="100"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("value", Math.max(-100, Math.min(100, v)));
+                }}
+              />
+            </div>
+          </Field>
+        </>
       )}
 
       {node.type === "exposure" && (
-        <Field label={t("settings.exposure.value")} hint={t("settings.exposure.valueHint")}>
-          <div className="flex items-center gap-2">
-            <input
-              type="range"
-              min="-5"
-              max="5"
-              step="0.1"
-              className="flex-1 accent-amber-500"
-              value={(node.data.value as number) ?? 0}
-              onChange={(e) => handleChange("value", Number(e.target.value))}
-            />
-            <input
-              type="number"
-              min="-5"
-              max="5"
-              step="0.1"
-              className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
-              value={(node.data.value as number) ?? 0}
-              onChange={(e) => {
-                const raw = e.target.value;
-                if (raw === "") return;
-                const v = Number(raw);
-                if (isNaN(v)) return;
-                handleChange("value", Math.max(-5, Math.min(5, v)));
-              }}
-            />
-          </div>
-        </Field>
+        <>
+          <AdjustmentPreview nodeId={node.id} nodeType={node.type} value={(node.data.value as number) ?? 0} />
+          <Field label={t("settings.exposure.value")} hint={t("settings.exposure.valueHint")}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="-5"
+                max="5"
+                step="0.1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => handleChange("value", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-5"
+                max="5"
+                step="0.1"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("value", Math.max(-5, Math.min(5, v)));
+                }}
+              />
+            </div>
+          </Field>
+        </>
       )}
 
       {node.type === "rename" && (
