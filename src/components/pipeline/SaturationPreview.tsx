@@ -4,8 +4,10 @@ import { usePipelineStore } from "../../stores/pipeline.store";
 import { useFilesStore } from "../../stores/files.store";
 import { applySaturation } from "../../core/canvas/saturation";
 import { processUpstreamChain } from "./preview-utils";
+import { CompareModal } from "./CompareModal";
+import { PreviewImage } from "./PreviewImage";
 
-function generateThumbnail(source: HTMLImageElement, maxSide = 200): HTMLCanvasElement {
+function generateThumbnail(source: HTMLImageElement, maxSide = 300): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   const scale = maxSide / Math.max(source.naturalWidth, source.naturalHeight);
   canvas.width = Math.round(source.naturalWidth * scale);
@@ -33,6 +35,7 @@ export function SaturationPreview({
   const [afterUrl, setAfterUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasInput, setHasInput] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const mountedRef = useRef(true);
   const prevKeyRef = useRef("");
 
@@ -74,7 +77,7 @@ export function SaturationPreview({
     img.onload = async () => {
       if (!mountedRef.current) return;
 
-      const thumb = generateThumbnail(img, 200);
+      const thumb = generateThumbnail(img, 300);
 
       let upstreamCanvas: HTMLCanvasElement;
       try {
@@ -127,20 +130,29 @@ export function SaturationPreview({
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-gray-400">{t("settings.saturation.previewLabel")}</label>
       <div className="flex gap-2 border border-white/10 rounded-lg overflow-hidden p-1.5 bg-black/20">
-        <div className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden">
-          {beforeUrl && <img src={beforeUrl} alt="Before" className="w-full h-full object-contain" />}
-          <span className="absolute bottom-1 left-1 text-[10px] text-gray-500 bg-black/60 px-1 rounded">
-            {t("settings.saturation.before")}
-          </span>
+        <div
+          className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden cursor-pointer"
+          onClick={() => beforeUrl && afterUrl && setShowModal(true)}
+        >
+          {beforeUrl && <PreviewImage src={beforeUrl} alt="Before" label={t("settings.saturation.before")} className="w-full h-full" />}
         </div>
         <div className="flex items-center text-gray-600 text-xs">→</div>
-        <div className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden">
-          {afterUrl && <img src={afterUrl} alt="After" className="w-full h-full object-contain" />}
-          <span className="absolute bottom-1 right-1 text-[10px] text-amber-400/80 bg-black/60 px-1 rounded">
-            {t("settings.saturation.after")}
-          </span>
+        <div
+          className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden cursor-pointer"
+          onClick={() => beforeUrl && afterUrl && setShowModal(true)}
+        >
+          {afterUrl && <PreviewImage src={afterUrl} alt="After" label={t("settings.saturation.after")} className="w-full h-full" />}
         </div>
       </div>
+      {showModal && beforeUrl && afterUrl && (
+        <CompareModal
+          beforeUrl={beforeUrl}
+          afterUrl={afterUrl}
+          beforeLabel={t("settings.saturation.before")}
+          afterLabel={`${t("settings.saturation.value")} ${saturation > 0 ? "+" : ""}${saturation}%`}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

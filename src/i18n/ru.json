@@ -219,6 +219,12 @@
     "emotionDesc": "Применить цветокоррекцию по эмоции",
     "saturation": "Насыщенность",
     "saturationDesc": "Настроить насыщенность",
+    "brightness": "Яркость",
+    "brightnessDesc": "Настроить яркость",
+    "contrast": "Контраст",
+    "contrastDesc": "Настроить контраст",
+    "exposure": "Экспозиция",
+    "exposureDesc": "Настроить экспозицию",
     "rename": "Переименовать",
     "renameDesc": "Переименовать файлы",
     "export": "Экспорт",
@@ -323,6 +329,18 @@
       "previewNoInput": "Подключите вход для превью",
       "before": "До",
       "after": "После"
+    },
+    "brightness": {
+      "value": "Яркость",
+      "valueHint": "-100 до +100"
+    },
+    "contrast": {
+      "value": "Контраст",
+      "valueHint": "-100 до +100"
+    },
+    "exposure": {
+      "value": "Экспозиция",
+      "valueHint": "-5 до +5"
     },
     "saturation": {
       "value": "Насыщенность",

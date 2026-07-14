@@ -9,6 +9,9 @@ export type NodeType =
   | "denoise"
   | "emotion"
   | "saturation"
+  | "brightness"
+  | "contrast"
+  | "exposure"
   | "export";
 
 export interface PipelineNode {

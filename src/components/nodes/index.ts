@@ -10,6 +10,9 @@ export const nodeTypes = {
   denoise: BaseNode,
   emotion: BaseNode,
   saturation: BaseNode,
+  brightness: BaseNode,
+  contrast: BaseNode,
+  exposure: BaseNode,
   rename: BaseNode,
   export: BaseNode,
 };

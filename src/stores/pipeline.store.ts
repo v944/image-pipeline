@@ -59,6 +59,12 @@ function getDefaultNodeData(type: NodeType): Record<string, unknown> {
       return { emotion: "neutral", intensity: 80, preview: true };
     case "saturation":
       return { saturation: 0 };
+    case "brightness":
+      return { value: 0 };
+    case "contrast":
+      return { value: 0 };
+    case "exposure":
+      return { value: 0 };
     case "load":
       return { fileId: null, includeSubfolders: false };
     default:

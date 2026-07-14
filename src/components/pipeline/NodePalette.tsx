@@ -20,6 +20,9 @@ export function NodePalette() {
     { type: "denoise", icon: "🧹", label: t("nodePalette.denoise"), description: t("nodePalette.denoiseDesc") },
     { type: "emotion", icon: "🎭", label: t("nodePalette.emotion"), description: t("nodePalette.emotionDesc") },
     { type: "saturation", icon: "🎨", label: t("nodePalette.saturation"), description: t("nodePalette.saturationDesc") },
+    { type: "brightness", icon: "☀️", label: t("nodePalette.brightness"), description: t("nodePalette.brightnessDesc") },
+    { type: "contrast", icon: "◐", label: t("nodePalette.contrast"), description: t("nodePalette.contrastDesc") },
+    { type: "exposure", icon: "🔆", label: t("nodePalette.exposure"), description: t("nodePalette.exposureDesc") },
     { type: "rename", icon: "✏️", label: t("nodePalette.rename"), description: t("nodePalette.renameDesc") },
     { type: "export", icon: "💾", label: t("nodePalette.export"), description: t("nodePalette.exportDesc") },
   ];

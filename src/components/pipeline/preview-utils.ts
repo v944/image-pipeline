@@ -1,4 +1,4 @@
-import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applySaturation } from "../../core/canvas";
+import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applySaturation, applyBrightness, applyContrast, applyExposure } from "../../core/canvas";
 import type { PipelineNode, PipelineEdge } from "../../types";
 
 function findUpstreamNodeIds(
@@ -68,6 +68,12 @@ async function applyProcessing(
       return applyEmotionFilter(canvas, node.data as any);
     case "saturation":
       return applySaturation(canvas, node.data as any);
+    case "brightness":
+      return applyBrightness(canvas, node.data as any);
+    case "contrast":
+      return applyContrast(canvas, node.data as any);
+    case "exposure":
+      return applyExposure(canvas, node.data as any);
     default:
       return canvas;
   }

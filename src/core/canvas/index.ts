@@ -6,4 +6,7 @@ export { applyLanczos } from "./enhance";
 export { applyDenoise } from "./denoise";
 export { applyEmotionFilter } from "./emotion";
 export { applySaturation } from "./saturation";
+export { applyBrightness } from "./brightness";
+export { applyContrast } from "./contrast";
+export { applyExposure } from "./exposure";
 export { convertFormat, isFormatSupported, getMimeType } from "./format";

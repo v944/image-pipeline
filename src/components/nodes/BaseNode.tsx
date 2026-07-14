@@ -14,6 +14,9 @@ const NODE_ICONS: Record<string, string> = {
   denoise: "🧹",
   emotion: "🎭",
   saturation: "🎨",
+  brightness: "☀️",
+  contrast: "◐",
+  exposure: "🔆",
   rename: "✏️",
   export: "💾",
 };
@@ -28,6 +31,9 @@ const NODE_COLORS: Record<string, string> = {
   denoise: "border-indigo-500/50 bg-indigo-500/10",
   emotion: "border-purple-500/50 bg-purple-500/10",
   saturation: "border-pink-500/50 bg-pink-500/10",
+  brightness: "border-yellow-500/50 bg-yellow-500/10",
+  contrast: "border-blue-500/50 bg-blue-500/10",
+  exposure: "border-red-500/50 bg-red-500/10",
   rename: "border-orange-500/50 bg-orange-500/10",
   export: "border-red-500/50 bg-red-500/10",
 };

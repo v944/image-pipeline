@@ -219,6 +219,12 @@
     "emotionDesc": "Apply emotion color grade",
     "saturation": "Saturation",
     "saturationDesc": "Adjust color saturation",
+    "brightness": "Brightness",
+    "brightnessDesc": "Adjust brightness",
+    "contrast": "Contrast",
+    "contrastDesc": "Adjust contrast",
+    "exposure": "Exposure",
+    "exposureDesc": "Adjust exposure",
     "rename": "Rename",
     "renameDesc": "Rename output files",
     "export": "Export",
@@ -323,6 +329,18 @@
       "previewNoInput": "Connect input to preview",
       "before": "Before",
       "after": "After"
+    },
+    "brightness": {
+      "value": "Brightness",
+      "valueHint": "-100 to +100"
+    },
+    "contrast": {
+      "value": "Contrast",
+      "valueHint": "-100 to +100"
+    },
+    "exposure": {
+      "value": "Exposure",
+      "valueHint": "-5 to +5"
     },
     "saturation": {
       "value": "Saturation",

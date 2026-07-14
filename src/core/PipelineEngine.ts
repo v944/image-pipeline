@@ -1,4 +1,4 @@
-import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applySaturation, convertFormat, applyCompress } from "./canvas";
+import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applySaturation, applyBrightness, applyContrast, applyExposure, convertFormat, applyCompress } from "./canvas";
 import type { PipelineNode, PipelineEdge } from "../types";
 
 export interface ProcessingResult {
@@ -29,23 +29,39 @@ export class PipelineEngine {
     source: HTMLCanvasElement,
     nodes: PipelineNode[],
     edges: PipelineEdge[]
-  ): Promise<Blob> {
+  ): Promise<Blob[]> {
     const chain = this.findActiveChain(nodes, edges);
-    if (chain.length === 0) return convertFormat(source, "PNG", 85);
-
-    const sorted = this.topologicalSortNodes(chain, edges);
-    let currentCanvas = source;
-
-    for (const node of sorted) {
-      if (!node.enabled || node.type === "load") continue;
-      currentCanvas = await this.processNode(node, currentCanvas);
+    if (chain.length === 0) {
+      return [await convertFormat(source, "PNG", 85)];
     }
 
-    const exportNode = sorted.find((n) => n.type === "export");
-    const format = (exportNode?.data?.format as string) || "PNG";
-    const quality = (exportNode?.data?.quality as number) || 85;
+    const sorted = this.topologicalSortNodes(chain, edges);
+    const exportNodes = sorted.filter((n) => n.type === "export" && n.enabled !== false);
 
-    return convertFormat(currentCanvas, format, quality);
+    if (exportNodes.length === 0) {
+      let currentCanvas = source;
+      for (const node of sorted) {
+        if (!node.enabled || node.type === "load") continue;
+        currentCanvas = await this.processNode(node, currentCanvas);
+      }
+      return [await convertFormat(currentCanvas, "PNG", 85)];
+    }
+
+    const results: Blob[] = [];
+    for (const exportNode of exportNodes) {
+      let currentCanvas = source;
+      for (const node of sorted) {
+        if (!node.enabled || node.type === "load") continue;
+        if (node.type === "export" && node.id !== exportNode.id) continue;
+        currentCanvas = await this.processNode(node, currentCanvas);
+      }
+
+      const format = (exportNode.data?.format as string) || "PNG";
+      const quality = (exportNode.data?.quality as number) || 85;
+      results.push(await convertFormat(currentCanvas, format, quality));
+    }
+
+    return results;
   }
 
   private findActiveChain(
@@ -103,6 +119,12 @@ export class PipelineEngine {
         return applyEmotionFilter(canvas, node.data as any);
       case "saturation":
         return applySaturation(canvas, node.data as any);
+      case "brightness":
+        return applyBrightness(canvas, node.data as any);
+      case "contrast":
+        return applyContrast(canvas, node.data as any);
+      case "exposure":
+        return applyExposure(canvas, node.data as any);
       case "rename":
         return canvas;
       case "load":

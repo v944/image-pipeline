@@ -81,12 +81,17 @@ export function ProcessingModal() {
         const ctx = srcCanvas.getContext("2d")!;
         ctx.drawImage(img, 0, 0);
 
-        const resultBlob = await engine.execute(srcCanvas, nodes, edges);
+        const resultBlobs = await engine.execute(srcCanvas, nodes, edges);
 
-        processed.push({
-          name: `processed-${i + 1}.${(resultBlob.type.split("/")[1] || "png").replace("jpeg", "jpg")}`,
-          blob: resultBlob,
-        });
+        for (let j = 0; j < resultBlobs.length; j++) {
+          const b = resultBlobs[j];
+          const ext = (b.type.split("/")[1] || "png").replace("jpeg", "jpg");
+          const suffix = resultBlobs.length > 1 ? `-${j + 1}` : "";
+          processed.push({
+            name: `processed-${i + 1}${suffix}.${ext}`,
+            blob: b,
+          });
+        }
 
         updateFileStatus(file.id, "done");
       } catch (err) {
