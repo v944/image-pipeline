@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import { useFilesStore } from "../../stores/files.store";
-import { DenoisePreview } from "./DenoisePreview";
+import { DenoiseFilterPreview } from "./DenoiseFilterPreview";
 import { EmotionPreview } from "./EmotionPreview";
-import { SaturationPreview } from "./SaturationPreview";
+import { HslPreview } from "./HslPreview";
 import { AdjustmentPreview } from "./AdjustmentPreview";
+import { FilterPreview } from "./FilterPreview";
+import { RotatePreview } from "./RotatePreview";
 
 interface Size { w: number; h: number }
 
@@ -225,7 +227,8 @@ export function NodeSettings() {
 
       {node.type === "denoise" && (
         <>
-          <DenoisePreview
+          <DenoiseFilterPreview
+            nodeId={node.id}
             method={node.data.method as string}
             strength={node.data.strength as number}
             radius={node.data.radius as number}
@@ -311,13 +314,42 @@ export function NodeSettings() {
         </>
       )}
 
-      {node.type === "saturation" && (
+      {node.type === "hsl" && (
         <>
-          <SaturationPreview
+          <HslPreview
             nodeId={node.id}
+            hue={node.data.hue as number}
             saturation={node.data.saturation as number}
+            lightness={node.data.lightness as number}
           />
-          <Field label={t("settings.saturation.value")} hint={t("settings.saturation.valueHint")}>
+          <Field label={t("settings.hsl.hue")} hint={t("settings.hsl.hueHint")}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                step="1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.hue as number) ?? 0}
+                onChange={(e) => handleChange("hue", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-180"
+                max="180"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.hue as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("hue", Math.max(-180, Math.min(180, v)));
+                }}
+              />
+            </div>
+          </Field>
+          <Field label={t("settings.hsl.saturation")} hint={t("settings.hsl.saturationHint")}>
             <div className="flex items-center gap-2">
               <input
                 type="range"
@@ -337,7 +369,7 @@ export function NodeSettings() {
                 onChange={(e) => {
                   const raw = e.target.value;
                   if (raw === "") return;
-                  let v = Number(raw);
+                  const v = Number(raw);
                   if (isNaN(v)) return;
                   handleChange("saturation", Math.max(-100, Math.min(100, v)));
                 }}
@@ -349,10 +381,37 @@ export function NodeSettings() {
               <span>{t("settings.saturation.saturate")}</span>
             </div>
           </Field>
+          <Field label={t("settings.hsl.lightness")} hint={t("settings.hsl.lightnessHint")}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                step="1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.lightness as number) ?? 0}
+                onChange={(e) => handleChange("lightness", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="-100"
+                max="100"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.lightness as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("lightness", Math.max(-100, Math.min(100, v)));
+                }}
+              />
+            </div>
+          </Field>
         </>
       )}
 
-      {(node.type === "brightness" || node.type === "contrast") && (
+      {(node.type === "brightness" || node.type === "contrast" || node.type === "temperature") && (
         <>
           <AdjustmentPreview nodeId={node.id} nodeType={node.type} value={(node.data.value as number) ?? 0} />
           <Field label={t(`settings.${node.type}.value`)} hint={t(`settings.${node.type}.valueHint`)}>
@@ -416,6 +475,70 @@ export function NodeSettings() {
               />
             </div>
           </Field>
+        </>
+      )}
+
+      {(node.type === "blur" || node.type === "sharpen" || node.type === "grayscale") && (
+        <>
+          <FilterPreview nodeId={node.id} nodeType={node.type} value={(node.data.value as number) ?? 0} />
+          <Field label={t(`settings.${node.type}.value`)} hint={t(`settings.${node.type}.valueHint`)}>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                className="flex-1 accent-amber-500"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => handleChange("value", Number(e.target.value))}
+              />
+              <input
+                type="number"
+                min="0"
+                max="100"
+                className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-gray-200 text-center"
+                value={(node.data.value as number) ?? 0}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") return;
+                  const v = Number(raw);
+                  if (isNaN(v)) return;
+                  handleChange("value", Math.max(0, Math.min(100, v)));
+                }}
+              />
+            </div>
+          </Field>
+        </>
+      )}
+
+      {node.type === "rotate" && (
+        <>
+          <RotatePreview
+            nodeId={node.id}
+            rotation={node.data.rotation as string}
+            flip={node.data.flip as string}
+          />
+          <SelectField
+            label={t("settings.rotate.rotation")}
+            value={node.data.rotation as string}
+            onChange={(v) => handleChange("rotation", v)}
+            options={[
+              { value: "none", label: t("settings.rotate.rotNone") },
+              { value: "90", label: t("settings.rotate.rot90") },
+              { value: "180", label: t("settings.rotate.rot180") },
+              { value: "270", label: t("settings.rotate.rot270") },
+            ]}
+          />
+          <SelectField
+            label={t("settings.rotate.flip")}
+            value={node.data.flip as string}
+            onChange={(v) => handleChange("flip", v)}
+            options={[
+              { value: "none", label: t("settings.rotate.flipNone") },
+              { value: "horizontal", label: t("settings.rotate.flipHorizontal") },
+              { value: "vertical", label: t("settings.rotate.flipVertical") },
+            ]}
+          />
         </>
       )}
 

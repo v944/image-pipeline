@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { type PipelineNode, type PipelineEdge, type NodeType } from "../types";
+import { type PipelineNode, type PipelineEdge, type NodeType, VALID_NODE_TYPES } from "../types";
 import { sanitizeData } from "../lib/sanitize";
 
 interface Snapshot {
@@ -37,6 +37,22 @@ function generateNodeId(type: string): string {
   return `${type}-${nodeCounter}-${Date.now().toString(36)}`;
 }
 
+function sanitizeLoadedNodes(nodes: PipelineNode[] | undefined): PipelineNode[] {
+  if (!Array.isArray(nodes)) return [];
+  const valid = new Set<string>(VALID_NODE_TYPES);
+  return nodes.filter((n) => n && valid.has(n.type));
+}
+
+function sanitizeLoadedEdges(
+  edges: PipelineEdge[] | undefined,
+  nodeIds: Set<string>
+): PipelineEdge[] {
+  if (!Array.isArray(edges)) return [];
+  return edges.filter(
+    (e) => e && nodeIds.has(e.source) && nodeIds.has(e.target)
+  );
+}
+
 function getDefaultNodeData(type: NodeType): Record<string, unknown> {
   switch (type) {
     case "resize":
@@ -57,14 +73,24 @@ function getDefaultNodeData(type: NodeType): Record<string, unknown> {
       return { method: "median", strength: 2, radius: 3 };
     case "emotion":
       return { emotion: "neutral", intensity: 80, preview: true };
-    case "saturation":
-      return { saturation: 0 };
+    case "hsl":
+      return { hue: 0, saturation: 0, lightness: 0 };
     case "brightness":
       return { value: 0 };
     case "contrast":
       return { value: 0 };
     case "exposure":
       return { value: 0 };
+    case "blur":
+      return { value: 0 };
+    case "sharpen":
+      return { value: 0 };
+    case "temperature":
+      return { value: 0 };
+    case "grayscale":
+      return { value: 0 };
+    case "rotate":
+      return { rotation: "none", flip: "none" };
     case "load":
       return { fileId: null, includeSubfolders: false };
     default:
@@ -164,7 +190,10 @@ export const usePipelineStore = create<PipelineState>()(
 
       loadPipeline: (nodes, edges) => {
         const s = snapshot(get);
-        set({ ...s, nodes: structuredClone(nodes), edges: structuredClone(edges) });
+        const cleanNodes = sanitizeLoadedNodes(nodes);
+        const ids = new Set(cleanNodes.map((n) => n.id));
+        const cleanEdges = sanitizeLoadedEdges(edges, ids);
+        set({ ...s, nodes: structuredClone(cleanNodes), edges: structuredClone(cleanEdges) });
       },
 
       setNodes: (nodes) => {
@@ -210,6 +239,25 @@ export const usePipelineStore = create<PipelineState>()(
         nodes: state.nodes,
         edges: state.edges,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const nodes = sanitizeLoadedNodes(state.nodes);
+        const ids = new Set(nodes.map((n) => n.id));
+        const edges = sanitizeLoadedEdges(state.edges, ids);
+        const changed =
+          nodes.length !== (state.nodes?.length ?? 0) ||
+          edges.length !== (state.edges?.length ?? 0);
+        if (changed) {
+          usePipelineStore.setState({
+            nodes,
+            edges,
+            selectedNodeId:
+              state.selectedNodeId && ids.has(state.selectedNodeId)
+                ? state.selectedNodeId
+                : null,
+          });
+        }
+      },
     }
   )
 );

@@ -8,6 +8,9 @@ const TRONSCAN_API = "https://apilist.tronscan.org/api/transaction";
 const TRONGRID_API = "https://api.trongrid.io/v1/accounts";
 const USDT_ADDRESS = process.env.USDT_ADDRESS || "TPenBbjw2BE1zBMot2kKrNuGgYdbPvQwDr";
 const USDT_CONTRACT = process.env.USDT_CONTRACT || "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const FROM_EMAIL = process.env.RECEIPT_FROM_EMAIL || "receipts@imagepipeline.art";
 
 const ACCEPTED_AMOUNTS: Record<string, { plan: "pro" | "lifetime"; months: number }> = {
   "10": { plan: "pro", months: 1200 },
@@ -161,6 +164,90 @@ export default async function handler(request: Request): Promise<Response> {
     }), 30 * 24 * 60 * 60);
 
     console.info(`[${requestId}] Activation successful via ${usingFallback ? "Trongrid" : "TronScan"}: session=${sessionId}, tier=${planConfig.plan}`);
+
+    if (ADMIN_EMAIL && RESEND_API_KEY) {
+      try {
+        const planLabel = planConfig.plan === "lifetime" ? "Lifetime" : "Pro";
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${RESEND_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: `Image Pipeline <${FROM_EMAIL}>`,
+            to: [ADMIN_EMAIL],
+            subject: `💰 Payment: ${planLabel} — ${expectedAmount} USDT`,
+            html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0D0D14;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0D0D14;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="480" cellpadding="0" cellspacing="0" style="background:#1A1A24;border-radius:16px;padding:32px;border:1px solid rgba(255,255,255,0.08);">
+          <tr>
+            <td align="center" style="padding-bottom:16px;"><span style="font-size:36px;">💰</span></td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom:8px;">
+              <h1 style="color:#F5F5F5;font-size:20px;margin:0;">New Payment Received</h1>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <p style="color:#9CA3AF;font-size:13px;margin:0;">A user has activated the <strong style="color:#F59E0B;">${planLabel}</strong> plan.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0D0D14;border-radius:12px;padding:16px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;padding-bottom:6px;">Plan</td>
+                  <td align="right" style="color:#F5F5F5;font-size:12px;font-weight:600;">${planLabel}</td>
+                </tr>
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;padding-bottom:6px;">Amount</td>
+                  <td align="right" style="color:#F59E0B;font-size:12px;font-weight:600;">${expectedAmount} USDT</td>
+                </tr>
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;padding-bottom:6px;">Network</td>
+                  <td align="right" style="color:#F5F5F5;font-size:12px;font-weight:400;">TRC-20</td>
+                </tr>
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;padding-bottom:6px;">TxID</td>
+                  <td align="right" style="color:#9CA3AF;font-size:11px;word-break:break-all;max-width:260px;">${txId}</td>
+                </tr>
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;padding-bottom:6px;">Session</td>
+                  <td align="right" style="color:#9CA3AF;font-size:11px;">${sessionId}</td>
+                </tr>
+                <tr>
+                  <td style="color:#9CA3AF;font-size:12px;">Time</td>
+                  <td align="right" style="color:#9CA3AF;font-size:11px;">${new Date().toISOString()}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding-top:20px;">
+              <a href="https://tronscan.org/#/transaction/${txId}" style="display:inline-block;background:#F59E0B;color:#000;text-decoration:none;font-size:13px;font-weight:600;padding:10px 24px;border-radius:10px;">
+                View on Tronscan
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+          }),
+        });
+      } catch (e) {
+        console.error(`[${requestId}] Admin email notification failed:`, e);
+      }
+    }
 
     return jsonResponse({
       verified: true,

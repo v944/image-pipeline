@@ -6,6 +6,17 @@
     <link rel="mask-icon" href="/favicon.svg" color="#7e14ff" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <script>
+      (function(){
+        var url = new URL(window.location.href);
+        var params = ['ref','utm_source','utm_medium','utm_campaign','utm_term','utm_content','source','fbclid','gclid'];
+        params.forEach(function(p){ url.searchParams.delete(p); });
+        var clean = url.origin + url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+        var link = document.createElement('link');
+        link.rel = 'canonical'; link.href = clean;
+        document.head.appendChild(link);
+      })();
+    </script>
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Image Pipeline — Batch Image Processing</title>

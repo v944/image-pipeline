@@ -5,11 +5,13 @@ import { useFilesStore } from "../../stores/files.store";
 import { applyBrightness } from "../../core/canvas/brightness";
 import { applyContrast } from "../../core/canvas/contrast";
 import { applyExposure } from "../../core/canvas/exposure";
+import { applyBlur } from "../../core/canvas/blur";
+import { applySharpen } from "../../core/canvas/sharpen";
+import { applyTemperature } from "../../core/canvas/temperature";
 import { processUpstreamChain } from "./preview-utils";
-import { CompareModal } from "./CompareModal";
 import { PreviewImage } from "./PreviewImage";
 
-function generateThumbnail(source: HTMLImageElement, maxSide = 300): HTMLCanvasElement {
+function generateThumbnail(source: HTMLImageElement, maxSide = 1200): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   const scale = maxSide / Math.max(source.naturalWidth, source.naturalHeight);
   canvas.width = Math.round(source.naturalWidth * scale);
@@ -25,6 +27,9 @@ const APPLY_FN: Record<string, (canvas: HTMLCanvasElement, settings: { value: nu
   brightness: applyBrightness,
   contrast: applyContrast,
   exposure: applyExposure,
+  blur: applyBlur,
+  sharpen: applySharpen,
+  temperature: applyTemperature,
 };
 
 export function AdjustmentPreview({
@@ -41,11 +46,9 @@ export function AdjustmentPreview({
   const edges = usePipelineStore((s) => s.edges);
   const files = useFilesStore((s) => s.files);
 
-  const [beforeUrl, setBeforeUrl] = useState<string | null>(null);
   const [afterUrl, setAfterUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasInput, setHasInput] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const mountedRef = useRef(true);
   const prevKeyRef = useRef("");
 
@@ -69,7 +72,6 @@ export function AdjustmentPreview({
   useEffect(() => {
     if (!file?.blobUrl) {
       setHasInput(false);
-      setBeforeUrl(null);
       setAfterUrl(null);
       prevKeyRef.current = "";
       return;
@@ -87,7 +89,7 @@ export function AdjustmentPreview({
     img.onload = async () => {
       if (!mountedRef.current) return;
 
-      const thumb = generateThumbnail(img, 300);
+      const thumb = generateThumbnail(img, 1200);
 
       let upstreamCanvas: HTMLCanvasElement;
       try {
@@ -97,16 +99,13 @@ export function AdjustmentPreview({
       }
 
       if (!mountedRef.current) return;
-      const beforeDataUrl = upstreamCanvas.toDataURL("image/jpeg", 0.85);
-      if (!mountedRef.current) return;
-      setBeforeUrl(beforeDataUrl);
 
       try {
         const applyFn = APPLY_FN[nodeType];
         if (applyFn) {
           const filtered = applyFn(upstreamCanvas, { value });
           if (!mountedRef.current) return;
-          const afterDataUrl = filtered.toDataURL("image/jpeg", 0.85);
+          const afterDataUrl = filtered.toDataURL("image/jpeg", 0.9);
           if (!mountedRef.current) return;
           setAfterUrl(afterDataUrl);
         }
@@ -124,7 +123,7 @@ export function AdjustmentPreview({
 
   if (!hasInput) {
     return (
-      <div className="text-xs text-gray-500 text-center py-3 border border-dashed border-white/10 rounded-lg">
+      <div className="text-xs text-gray-500 text-center py-3 border border-dashed border-white/10 rounded-lg min-h-[120px] flex items-center justify-center">
         {t("settings.saturation.previewNoInput")}
       </div>
     );
@@ -132,7 +131,7 @@ export function AdjustmentPreview({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-3 border border-dashed border-white/10 rounded-lg">
+      <div className="flex items-center justify-center gap-2 py-3 border border-dashed border-white/10 rounded-lg min-h-[120px]">
         <span className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-xs text-gray-400">{t("common.loading")}</span>
       </div>
@@ -142,30 +141,13 @@ export function AdjustmentPreview({
   return (
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-gray-400">{t("settings.saturation.previewLabel")}</label>
-      <div className="flex gap-2 border border-white/10 rounded-lg overflow-hidden p-1.5 bg-black/20">
-        <div
-          className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden cursor-pointer"
-          onClick={() => beforeUrl && afterUrl && setShowModal(true)}
-        >
-          {beforeUrl && <PreviewImage src={beforeUrl} alt="Before" label={t("settings.saturation.before")} className="w-full h-full" />}
-        </div>
-        <div className="flex items-center text-gray-600 text-xs">→</div>
-        <div
-          className="flex-1 aspect-[4/3] relative bg-black/40 rounded overflow-hidden cursor-pointer"
-          onClick={() => beforeUrl && afterUrl && setShowModal(true)}
-        >
-          {afterUrl && <PreviewImage src={afterUrl} alt="After" label={t("settings.saturation.after")} className="w-full h-full" />}
-        </div>
+      <div className="border border-white/10 rounded-lg overflow-hidden bg-black/30">
+        {afterUrl ? (
+          <PreviewImage src={afterUrl} alt="Adjusted" label={t("settings.emotion.after")} className="w-full" />
+        ) : (
+          <div className="text-xs text-gray-500 text-center py-6">{t("common.error")}</div>
+        )}
       </div>
-      {showModal && beforeUrl && afterUrl && (
-        <CompareModal
-          beforeUrl={beforeUrl}
-          afterUrl={afterUrl}
-          beforeLabel={t("settings.saturation.before")}
-          afterLabel={`${t(`nodePalette.${nodeType}`)} ${value > 0 ? "+" : ""}${value}`}
-          onClose={() => setShowModal(false)}
-        />
-      )}
     </div>
   );
 }

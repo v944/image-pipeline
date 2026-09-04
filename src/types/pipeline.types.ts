@@ -8,11 +8,38 @@ export type NodeType =
   | "rename"
   | "denoise"
   | "emotion"
-  | "saturation"
+  | "hsl"
   | "brightness"
   | "contrast"
   | "exposure"
+  | "blur"
+  | "sharpen"
+  | "temperature"
+  | "grayscale"
+  | "rotate"
   | "export";
+
+export const VALID_NODE_TYPES: NodeType[] = [
+  "load",
+  "resize",
+  "crop",
+  "compress",
+  "format",
+  "watermark",
+  "rename",
+  "denoise",
+  "emotion",
+  "hsl",
+  "brightness",
+  "contrast",
+  "exposure",
+  "blur",
+  "sharpen",
+  "temperature",
+  "grayscale",
+  "rotate",
+  "export",
+];
 
 export interface PipelineNode {
   id: string;

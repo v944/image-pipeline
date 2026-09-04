@@ -16,7 +16,8 @@
     "delete": "Delete",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "new": "New"
   },
   "landing": {
     "heroTitle": "Batch image processing",
@@ -64,6 +65,8 @@
     "headerSave": "Save",
     "undo": "Undo",
     "redo": "Redo",
+    "clearCanvas": "Clear canvas",
+    "clearCanvasConfirm": "Clear the canvas? This removes all nodes and connections. Uploaded files are kept.",
     "toggleSidebar": "Toggle sidebar",
     "free": "Free",
     "pro": "Pro",
@@ -180,7 +183,7 @@
     "q6": "Can I use the editor without an account?",
     "q6a": "Yes. No signup, no email, no account needed. Just open the editor and start building pipelines.",
     "q7": "What does each pipeline node do?",
-    "q7a": "Load — entry point for your images; Resize — change dimensions; Crop — cut a region; Compress — reduce file size; Format — convert format; Watermark — add text overlay; Denoise — reduce noise; Emotion — apply color emotion filter; Saturation — adjust color saturation; Rename — set output filenames; Export — final output settings. Connect them in any order.",
+    "q7a": "Load — entry point for your images; Resize — change dimensions; Crop — cut a region; Rotate — rotate or flip; Compress — reduce file size; Format — convert format; Watermark — add text overlay; Denoise — reduce noise; Emotion — apply color emotion filter; HSL — adjust hue, saturation and lightness; Brightness — adjust brightness; Contrast — adjust contrast; Exposure — adjust exposure; Temperature — adjust white balance; Grayscale — convert to black & white; Blur — apply Gaussian blur; Sharpen — sharpen image details; Rename — set output filenames; Export — final output settings. Connect them in any order.",
     "q8": "How do I connect nodes in the pipeline?",
     "q8a": "Each node has circular handles on its sides. Drag from the output handle (right side) of one node to the input handle (left side) of another. A disconnected node is skipped during processing.",
     "q9": "What happens if a node fails?",
@@ -200,6 +203,15 @@
     "title": "Terms of Service",
     "lastUpdated": "Last updated: July 1, 2026"
   },
+  "paletteGroups": {
+    "input": "Input",
+    "transform": "Transform",
+    "adjust": "Adjust",
+    "filter": "Filter",
+    "style": "Style",
+    "output": "Output",
+    "searchPlaceholder": "Search nodes..."
+  },
   "nodePalette": {
     "load": "Load",
     "loadDesc": "Load input images",
@@ -217,14 +229,24 @@
     "denoiseDesc": "Reduce image noise",
     "emotion": "Emotion",
     "emotionDesc": "Apply emotion color grade",
-    "saturation": "Saturation",
-    "saturationDesc": "Adjust color saturation",
+    "hsl": "HSL",
+    "hslDesc": "Adjust hue, saturation and lightness",
     "brightness": "Brightness",
     "brightnessDesc": "Adjust brightness",
     "contrast": "Contrast",
     "contrastDesc": "Adjust contrast",
     "exposure": "Exposure",
     "exposureDesc": "Adjust exposure",
+    "blur": "Blur",
+    "blurDesc": "Apply Gaussian blur",
+    "sharpen": "Sharpen",
+    "sharpenDesc": "Sharpen image details",
+    "temperature": "Temperature",
+    "temperatureDesc": "Adjust color temperature",
+    "grayscale": "Grayscale",
+    "grayscaleDesc": "Convert to black and white",
+    "rotate": "Rotate",
+    "rotateDesc": "Rotate or flip image",
     "rename": "Rename",
     "renameDesc": "Rename output files",
     "export": "Export",
@@ -341,6 +363,41 @@
     "exposure": {
       "value": "Exposure",
       "valueHint": "-5 to +5"
+    },
+    "blur": {
+      "value": "Blur",
+      "valueHint": "0-100"
+    },
+    "sharpen": {
+      "value": "Sharpen",
+      "valueHint": "0-100"
+    },
+    "hsl": {
+      "hue": "Hue",
+      "hueHint": "-180 to +180 degrees",
+      "saturation": "Saturation",
+      "saturationHint": "-100 to +100",
+      "lightness": "Lightness",
+      "lightnessHint": "-100 to +100"
+    },
+    "temperature": {
+      "value": "Temperature",
+      "valueHint": "-100 to +100"
+    },
+    "grayscale": {
+      "value": "Grayscale",
+      "valueHint": "0-100%"
+    },
+    "rotate": {
+      "rotation": "Rotation",
+      "rotNone": "None",
+      "rot90": "90° clockwise",
+      "rot180": "180°",
+      "rot270": "270° clockwise",
+      "flip": "Flip",
+      "flipNone": "None",
+      "flipHorizontal": "Horizontal",
+      "flipVertical": "Vertical"
     },
     "saturation": {
       "value": "Saturation",

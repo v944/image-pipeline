@@ -8,6 +8,60 @@
       "has": [{ "type": "host", "value": "www.imagepipeline.art" }],
       "destination": "https://imagepipeline.art",
       "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "ref" }],
+      "destination": "/:path?ref=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "source" }],
+      "destination": "/:path?source=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "utm_source" }],
+      "destination": "/:path?utm_source=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "utm_medium" }],
+      "destination": "/:path?utm_medium=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "utm_campaign" }],
+      "destination": "/:path?utm_campaign=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "utm_term" }],
+      "destination": "/:path?utm_term=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "utm_content" }],
+      "destination": "/:path?utm_content=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "fbclid" }],
+      "destination": "/:path?fbclid=",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.*)",
+      "has": [{ "type": "query", "key": "gclid" }],
+      "destination": "/:path?gclid=",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -18,6 +72,9 @@
     { "source": "/api/crypto/verify", "destination": "/api/crypto/verify.ts" },
     { "source": "/api/pipeline/share", "destination": "/api/pipeline/share.ts" },
     { "source": "/api/pipeline/([^/]+)", "destination": "/api/pipeline/[shareId].ts" },
+    { "source": "/api/subscribe", "destination": "/api/subscribe.ts" },
+    { "source": "/api/subscribers", "destination": "/api/subscribers.ts" },
+    { "source": "/api/newsletter", "destination": "/api/newsletter.ts" },
     { "source": "/api/error", "destination": "/api/error.ts" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
@@ -33,7 +90,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://www.google-analytics.com; font-src 'self' data:; connect-src 'self' https://*.google-analytics.com https://analytics.google.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://www.google-analytics.com https://api.producthunt.com https://speaktechenglish.com; font-src 'self' data:; connect-src 'self' https://*.google-analytics.com https://analytics.google.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'"
         },
         {
           "key": "Strict-Transport-Security",

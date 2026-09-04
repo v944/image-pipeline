@@ -23,6 +23,7 @@ export function Header({ onProcess }: { onProcess: () => void }) {
   const future = usePipelineStore((s) => s.future);
   const undo = usePipelineStore((s) => s.undo);
   const redo = usePipelineStore((s) => s.redo);
+  const resetPipeline = usePipelineStore((s) => s.resetPipeline);
   const savePipeline = useSavedPipelinesStore((s) => s.save);
   const mobileSidebarOpen = useUIStore((s) => s.mobileSidebarOpen);
   const setMobileSidebar = useUIStore((s) => s.setMobileSidebar);
@@ -35,6 +36,11 @@ export function Header({ onProcess }: { onProcess: () => void }) {
   const handleSave = () => {
     const name = window.prompt("Pipeline name", `Pipeline ${new Date().toLocaleString()}`);
     if (name) savePipeline(name, null, nodes, edges);
+  };
+
+  const handleClear = () => {
+    if (nodes.length === 0) return;
+    if (window.confirm(t("editor.clearCanvasConfirm"))) resetPipeline();
   };
 
   return (
@@ -75,6 +81,19 @@ export function Header({ onProcess }: { onProcess: () => void }) {
             <Redo2 className="w-4 h-4" />
           </button>
           <LanguageSwitcher />
+          <button
+            onClick={handleClear}
+            disabled={nodes.length === 0}
+            className={cn(
+              "ml-3 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
+              nodes.length > 0
+                ? "text-red-400 border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50"
+                : "text-gray-600 border-white/5 cursor-not-allowed"
+            )}
+            title={t("editor.clearCanvasConfirm")}
+          >
+            {t("editor.clearCanvas")}
+          </button>
         </div>
       </div>
 
