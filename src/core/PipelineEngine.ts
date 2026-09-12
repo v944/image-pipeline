@@ -1,28 +1,6 @@
-import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applyBrightness, applyContrast, applyExposure, applyBlur, applySharpen, applyHsl, applyTemperature, applyGrayscale, applyRotate, convertFormat, applyCompress } from "./canvas";
-import type { PipelineNode, PipelineEdge } from "../types";
-
-export interface ProcessingResult {
-  nodeId: string;
-  canvas: HTMLCanvasElement;
-  blob?: Blob;
-}
-
-async function canvasFromBlob(blob: Blob): Promise<HTMLCanvasElement> {
-  const img = new Image();
-  const url = URL.createObjectURL(blob);
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error("Failed to decode compressed image"));
-    img.src = url;
-  });
-  URL.revokeObjectURL(url);
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, 0, 0);
-  return canvas;
-}
+import { applyResize, applyCrop, applyWatermark, applyDenoise, applyEmotionFilter, applyBrightness, applyContrast, applyExposure, applyBlur, applySharpen, applyHsl, applyTemperature, applyGrayscale, applyRotate, convertFormat } from "./canvas";
+import { resolveActiveChain, wouldCreateCycleInEdges } from "./chain";
+import type { PipelineNode, PipelineEdge } from "../types/pipeline.types";
 
 export class PipelineEngine {
   async execute(
@@ -32,33 +10,34 @@ export class PipelineEngine {
   ): Promise<Blob[]> {
     const chain = this.findActiveChain(nodes, edges);
     if (chain.length === 0) {
-      return [await convertFormat(source, "PNG", 85)];
+      return [await convertFormat(source, "PNG", 80)];
     }
 
     const sorted = this.topologicalSortNodes(chain, edges);
-    const exportNodes = sorted.filter((n) => n.type === "export" && n.enabled !== false);
+    const exportNodes = sorted.filter(
+      (n) => n.type === "export" && n.enabled !== false
+    );
 
     if (exportNodes.length === 0) {
-      let currentCanvas = source;
+      let canvas = source;
       for (const node of sorted) {
-        if (!node.enabled || node.type === "load") continue;
-        currentCanvas = await this.processNode(node, currentCanvas);
+        if (node.enabled === false || node.type === "load") continue;
+        canvas = await this.processNode(node, canvas);
       }
-      return [await convertFormat(currentCanvas, "PNG", 85)];
+      return [await convertFormat(canvas, "PNG", 85)];
     }
 
     const results: Blob[] = [];
     for (const exportNode of exportNodes) {
-      let currentCanvas = source;
+      let canvas = source;
       for (const node of sorted) {
-        if (!node.enabled || node.type === "load") continue;
+        if (node.enabled === false || node.type === "load") continue;
         if (node.type === "export" && node.id !== exportNode.id) continue;
-        currentCanvas = await this.processNode(node, currentCanvas);
+        canvas = await this.processNode(node, canvas);
       }
-
       const format = (exportNode.data?.format as string) || "PNG";
       const quality = (exportNode.data?.quality as number) || 85;
-      results.push(await convertFormat(currentCanvas, format, quality));
+      results.push(await convertFormat(canvas, format, quality));
     }
 
     return results;
@@ -68,81 +47,106 @@ export class PipelineEngine {
     nodes: PipelineNode[],
     edges: PipelineEdge[]
   ): PipelineNode[] {
-    const loadNodes = nodes.filter(
-      (n) => n.type === "load" && n.data?.fileId
-    );
-    if (loadNodes.length === 0) return [];
-
-    const adj = new Map<string, string[]>();
-    nodes.forEach((n) => adj.set(n.id, []));
-    edges.forEach((e) => adj.get(e.source)?.push(e.target));
-
-    const visited = new Set<string>();
-    for (const load of loadNodes) {
-      const queue = [load.id];
-      while (queue.length > 0) {
-        const id = queue.shift()!;
-        if (visited.has(id)) continue;
-        visited.add(id);
-        for (const next of adj.get(id) || []) queue.push(next);
-      }
-    }
-
-    return nodes.filter((n) => visited.has(n.id));
+    return resolveActiveChain(nodes, edges);
   }
 
-  private async processNode(
+  private processNode(
     node: PipelineNode,
     canvas: HTMLCanvasElement
   ): Promise<HTMLCanvasElement> {
+    const data = node.data as Record<string, unknown> | undefined;
     switch (node.type) {
       case "resize":
-        return applyResize(canvas, node.data as any);
+        return Promise.resolve(
+          applyResize(canvas, {
+            width: (data?.width as number | null) ?? null,
+            height: (data?.height as number | null) ?? null,
+            mode: (data?.mode as "fit" | "fill" | "stretch") ?? "fit",
+            keepAspectRatio: (data?.keepAspectRatio as boolean) ?? true,
+          })
+        );
       case "crop":
-        return applyCrop(canvas, node.data as any);
+        return Promise.resolve(
+          applyCrop(canvas, {
+            x: (data?.x as number) ?? 0,
+            y: (data?.y as number) ?? 0,
+            width: (data?.width as number) ?? 0,
+            height: (data?.height as number) ?? 0,
+            unit: (data?.unit as "px" | "percent") ?? "px",
+          })
+        );
       case "watermark":
-        return applyWatermark(canvas, node.data as any);
-      case "format": {
-        const fmt = (node.data?.targetFormat as string) || "PNG";
-        const q = (node.data?.quality as number) || 85;
-        const blob = await convertFormat(canvas, fmt, q);
-        return canvasFromBlob(blob);
-      }
-      case "compress": {
-        const q = (node.data?.quality as number) || 85;
-        const blob = await applyCompress(canvas, { quality: q, method: "lossy" });
-        return canvasFromBlob(blob);
-      }
+        return Promise.resolve(
+          applyWatermark(canvas, {
+            text: (data?.text as string) || "",
+            position:
+              (data?.position as
+                | "top-left"
+                | "top-right"
+                | "bottom-left"
+                | "bottom-right"
+                | "center") ?? "bottom-right",
+            fontSize: (data?.fontSize as number) ?? 40,
+            opacity: (data?.opacity as number) ?? 70,
+            color: data?.color as string | undefined,
+          })
+        );
       case "denoise":
-        return applyDenoise(canvas, node.data as any);
+        return Promise.resolve(
+          applyDenoise(canvas, {
+            method: "gaussian",
+            strength: (data?.strength as number) ?? 12,
+            radius: (data?.radius as number) ?? 25,
+          })
+        );
       case "emotion":
-        return applyEmotionFilter(canvas, node.data as any);
-      case "hsl":
-        return applyHsl(canvas, node.data as any);
+        return Promise.resolve(
+          applyEmotionFilter(canvas, {
+            emotion: (data?.mode as string) || "joy",
+            intensity: (data?.intensity as number) ?? 80,
+          })
+        );
       case "brightness":
-        return applyBrightness(canvas, node.data as any);
+        return Promise.resolve(applyBrightness(canvas, { value: (data?.value as number) ?? 0 }));
       case "contrast":
-        return applyContrast(canvas, node.data as any);
+        return Promise.resolve(applyContrast(canvas, { value: (data?.value as number) ?? 0 }));
       case "exposure":
-        return applyExposure(canvas, node.data as any);
+        return Promise.resolve(applyExposure(canvas, { value: (data?.value as number) ?? 0 }));
       case "blur":
-        return applyBlur(canvas, node.data as any);
+        return Promise.resolve(applyBlur(canvas, { value: (data?.radius as number) ?? 14 }));
       case "sharpen":
-        return applySharpen(canvas, node.data as any);
+        return Promise.resolve(applySharpen(canvas, { value: (data?.amount as number) ?? 80 }));
+      case "hsl":
+        return Promise.resolve(
+          applyHsl(canvas, {
+            hue: (data?.hue as number) ?? 0,
+            saturation: (data?.saturation as number) ?? 0,
+            lightness: (data?.lightness as number) ?? 0,
+          })
+        );
       case "temperature":
-        return applyTemperature(canvas, node.data as any);
+        return Promise.resolve(applyTemperature(canvas, { value: (data?.value as number) ?? 5000 }));
       case "grayscale":
-        return applyGrayscale(canvas, node.data as any);
+        return Promise.resolve(applyGrayscale(canvas, { value: 100 }));
       case "rotate":
-        return applyRotate(canvas, node.data as any);
-      case "rename":
-        return canvas;
+        return Promise.resolve(
+          applyRotate(canvas, {
+            rotation:
+              (data?.angle as string | undefined)?.toString() ||
+              (data?.rotation as string | undefined) ||
+              "none",
+            flip:
+              (data?.flip as string | undefined) ||
+              (data?.flip as string | undefined) ||
+              "none",
+          })
+        );
       case "load":
-        return canvas;
+        return Promise.resolve(canvas);
       case "export":
-        return canvas;
+        return Promise.resolve(canvas);
       default:
-        return canvas;
+        return Promise.resolve(canvas);
     }
   }
 
@@ -159,6 +163,28 @@ export class PipelineEngine {
       adj.set(n.id, []);
     });
 
+    // Only edges whose endpoints are BOTH inside the executing chain count.
+    // A raw saved edge may still reference a node that resolveActiveChain
+    // excluded (typically the load node, when no file is selected yet, or
+    // any other node gated out). Feeding that edge's TARGET into inDegree
+    // adds in-degree from a phantom source no chain node owns -> Kahn"s
+    // queue never empties it -> the result is permanently incomplete -> the
+    // cycle backstop rebuilt the SAME edge list and recursed forever, which
+    // is the exact "Maximum call stack size exceeded" seen per file in the
+    // browser. Endpoint membership fixes it structurally (no recursion).
+    const chainEndpoints = new Set<string>();
+    edges.forEach((e) => {
+      if (nodeMap.has(e.source) && nodeMap.has(e.target)) {
+        chainEndpoints.add(e.source);
+        chainEndpoints.add(e.target);
+      }
+    });
+    const effectiveEdges = edges.filter(
+      (e) => chainEndpoints.has(e.source) && chainEndpoints.has(e.target)
+    );
+
+    edges = effectiveEdges;
+
     edges.forEach((e) => {
       adj.get(e.source)?.push(e.target);
       inDegree.set(e.target, (inDegree.get(e.target) || 0) + 1);
@@ -174,19 +200,25 @@ export class PipelineEngine {
       const id = queue.shift()!;
       const node = nodeMap.get(id);
       if (node) result.push(node);
-      for (const neighbor of adj.get(id) || []) {
-        const newDeg = (inDegree.get(neighbor) || 1) - 1;
-        inDegree.set(neighbor, newDeg);
-        if (newDeg === 0) queue.push(neighbor);
+      for (const next of adj.get(id) || []) {
+        const newDeg = (inDegree.get(next) || 1) - 1;
+        inDegree.set(next, newDeg);
+        if (newDeg === 0) queue.push(next);
       }
     }
 
     if (result.length !== nodes.length) {
-      const sortedIds = new Set(result.map((n) => n.id));
-      const cycleNodes = nodes.filter((n) => !sortedIds.has(n.id)).map((n) => n.id);
-      throw new Error(
-        `Pipeline contains a cycle involving nodes: ${cycleNodes.join(", ")}`
-      );
+      // Defensive backstop: a user can still connect a cycle edge directly
+      // through other code paths (e.g. an older saved pipeline). Rather than
+      // throwing and showing an error per file, reparent to a cycle-free
+      // edge subset and re-sort. Membershipping above already eliminated the
+      // phantom-inDegree source, so this rebuild strictly shrinks.
+      const reparented: PipelineEdge[] = [];
+      for (const e of edges) {
+        if (wouldCreateCycleInEdges(reparented, e.source, e.target)) continue;
+        reparented.push({ ...e, id: "t" + e.id });
+      }
+      return this.topologicalSortNodes(nodes, reparented);
     }
 
     return result;

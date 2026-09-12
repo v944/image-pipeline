@@ -14,6 +14,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useTranslation } from "react-i18next";
+import { wouldCreateCycleInEdges } from "../../stores/pipeline.store";
 import { nodeTypes } from "../nodes";
 import { usePipelineStore } from "../../stores/pipeline.store";
 import type { NodeType } from "../../types";
@@ -138,6 +139,11 @@ export function FlowEditor() {
         onDragOver={onDragOver}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
+        isValidConnection={(conn) =>
+          conn.source && conn.target
+            ? !wouldCreateCycleInEdges(storeEdges, conn.source, conn.target)
+            : false
+        }
         fitView
         edgesFocusable={true}
         deleteKeyCode={["Backspace", "Delete"]}

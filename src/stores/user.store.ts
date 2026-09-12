@@ -38,7 +38,9 @@ export const useUserStore = create<UserState>()(
         };
       }
 
-      const isDev = typeof location !== "undefined" && location.hostname === "localhost";
+      const isDev =
+        typeof location !== "undefined" &&
+        (location.hostname === "localhost" || location.hostname === "127.0.0.1");
       return {
         plan: isDev ? "lifetime" : "free",
         sessionId: generateSessionId(),
@@ -65,7 +67,9 @@ export const useUserStore = create<UserState>()(
         resetUsage: () => set({ usage: { filesProcessed: 0, batchesProcessed: 0 } }),
 
         checkServerLimit: async (limitType) => {
-          const isDev = typeof location !== "undefined" && location.hostname === "localhost";
+          const isDev =
+            typeof location !== "undefined" &&
+            (location.hostname === "localhost" || location.hostname === "127.0.0.1");
           if (isDev) return { allowed: true, limit: Infinity, resetAt: null };
           const { sessionId } = get();
           try {
@@ -100,6 +104,16 @@ export const useUserStore = create<UserState>()(
     {
       name: "image-pipeline-user",
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        const host = typeof location !== "undefined" ? location.hostname : "";
+        const isDev = host === "localhost" || host === "127.0.0.1";
+        if (isDev && state?.setPlan) {
+          // Local dev / preview must always behave as a lifetime build. A
+          // previously persisted "free" (or even a stale "pro") in localStorage
+          // must never downgrade the local build across reloads.
+          state.setPlan("lifetime");
+        }
+      },
       partialize: (state) => ({
         plan: state.plan,
         sessionId: state.sessionId,

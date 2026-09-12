@@ -43,14 +43,44 @@ function sanitizeLoadedNodes(nodes: PipelineNode[] | undefined): PipelineNode[] 
   return nodes.filter((n) => n && valid.has(n.type));
 }
 
+export function wouldCreateCycleInEdges(
+  edges: PipelineEdge[],
+  source: string,
+  target: string
+): boolean {
+  if (source === target) return true;
+  const adj = new Map<string, string[]>();
+  for (const e of edges) {
+    if (!adj.has(e.source)) adj.set(e.source, []);
+    adj.get(e.source)!.push(e.target);
+  }
+  const stack = [target];
+  const visited = new Set<string>();
+  while (stack.length > 0) {
+    const id = stack.pop()!;
+    if (id === source) return true;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    for (const next of adj.get(id) || []) stack.push(next);
+  }
+  return false;
+}
+
 function sanitizeLoadedEdges(
   edges: PipelineEdge[] | undefined,
   nodeIds: Set<string>
 ): PipelineEdge[] {
   if (!Array.isArray(edges)) return [];
-  return edges.filter(
+  const validEdges = edges.filter(
     (e) => e && nodeIds.has(e.source) && nodeIds.has(e.target)
   );
+  const clean: PipelineEdge[] = [];
+  for (const e of validEdges) {
+    if (!wouldCreateCycleInEdges(clean, e.source, e.target)) {
+      clean.push(e);
+    }
+  }
+  return clean;
 }
 
 function getDefaultNodeData(type: NodeType): Record<string, unknown> {
@@ -173,6 +203,7 @@ export const usePipelineStore = create<PipelineState>()(
 
       addEdge: (source, target) => {
         if (get().edges.some((e) => e.source === source && e.target === target)) return;
+        if (wouldCreateCycleInEdges(get().edges, source, target)) return;
         const s = snapshot(get);
         const edge: PipelineEdge = { id: `edge-${source}-${target}`, source, target };
         set({ ...s, edges: [...get().edges, edge] });

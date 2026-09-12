@@ -54,7 +54,24 @@ class EdgeClient {
     throw lastError || new Error("Max retries exceeded");
   }
 
+  private isDevHost(): boolean {
+    if (typeof location === "undefined") return false;
+    const host = location.hostname;
+    return host === "localhost" || host === "127.0.0.1";
+  }
+
   async checkLimit(sessionId: string, limitType: string): Promise<LimitResponse> {
+    if (this.isDevHost()) {
+      return {
+        allowed: true,
+        current: 0,
+        limit: Infinity,
+        resetAt: null,
+        tier: "lifetime",
+        limitType,
+      };
+    }
+
     if (this.offlineMode) {
       return this.fallbackLimitCheck(limitType);
     }
