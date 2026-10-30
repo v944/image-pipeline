@@ -36,7 +36,7 @@ export function CryptoModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [qrsrc, setQrsrc] = useState("");
   const [telegramPay, setTelegramPay] = useState(false);
-  const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string }>({ phase: "idle" });
+  const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string; error?: string }>({ phase: "idle" });
 
   useEffect(() => {
     let cancelled = false;
@@ -101,9 +101,13 @@ export function CryptoModal({
   const checkInvoice = useCallback(async (hash: string) => {
     try {
       const res = await fetch(`/api/crypto/telegram-pay?hash=${encodeURIComponent(hash)}&sessionId=${sessionId}`);
-      const data = await res.json() as { success: boolean; data?: { paid?: boolean; plan?: string; status?: string } };
+      const data = await res.json() as { success: boolean; data?: { paid?: boolean; plan?: string; status?: string }; error?: { code?: string; message?: string } };
       const d = data.data;
-      if (!data.success || !d) return;
+      if (!data.success || !d) {
+        setTg((s) => ({ ...s, error: data.error ? `${data.error.code}: ${data.error.message}` : "status check failed" }));
+        return;
+      }
+      setTg((s) => ({ ...s, error: undefined }));
       if (d.paid) {
         setTg((s) => ({ ...s, phase: "paid" }));
       } else if (d.status === "expired") {
@@ -263,6 +267,9 @@ export function CryptoModal({
                   >
                     {t("cryptoModal.telegram.check")}
                   </button>
+                )}
+                {tg.error && (
+                  <p className="text-xs text-amber-500 text-center font-mono">{tg.error}</p>
                 )}
               </div>
             )}

@@ -86,7 +86,10 @@ async function activate(plan: string, sessionId: string, ref: string, amount: st
 
 async function getInvoice(invoiceId: number): Promise<CryptoInvoice | null> {
   const res = await cbApi("getInvoices", { invoice_ids: String(invoiceId) });
-  if (!res.ok || !res.result) return null;
+  if (!res.ok || !res.result) {
+    console.error("CryptoBot getInvoices error:", JSON.stringify(res.error || res));
+    return null;
+  }
   const result = res.result as { items?: CryptoInvoice[] } | CryptoInvoice[];
   const list = Array.isArray(result) ? result : (result.items || []);
   return list.find((inv) => inv.invoice_id === invoiceId) || null;
