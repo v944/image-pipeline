@@ -145,20 +145,25 @@ export default async function handler(request: Request): Promise<Response> {
         return errorResponse("CRYPTOBOT_ERROR", "Unexpected CryptoBot response.", 502);
       }
 
+      const payUrl = invoice.pay_url || invoice.bot_invoice_url || `https://t.me/CryptoBot?start=iv_${invoice.hash}`;
+
       await kv.set(`tg_invoice:${invoice.hash}`, JSON.stringify({
         invoiceId: invoice.invoice_id,
         sessionId,
         plan: tier,
         amount: plan.usdt,
+        url: payUrl,
         activated: false,
         createdAt: new Date().toISOString(),
       }), INVOICE_TTL);
+
+      await kv.set(`tg_session:${sessionId}`, invoice.hash, INVOICE_TTL);
 
       return jsonResponse({
         configured: true,
         hash: invoice.hash,
         invoiceId: invoice.invoice_id,
-        url: invoice.pay_url || invoice.bot_invoice_url || `https://t.me/CryptoBot?start=iv_${invoice.hash}`,
+        url: payUrl,
       }, 200);
     }
 
@@ -171,34 +176,44 @@ export default async function handler(request: Request): Promise<Response> {
       }
 
       const url = new URL(request.url);
-      const hash = url.searchParams.get("hash") || "";
+      let hash = url.searchParams.get("hash") || "";
       const sessionId = url.searchParams.get("sessionId") || "";
 
-      if (!/^[A-Za-z0-9_-]{6,64}$/.test(hash) || !/^[0-9a-f-]{36}$/i.test(sessionId)) {
-        return errorResponse("INVALID_SCHEMA", "hash and sessionId are required", 400);
+      if (!/^[0-9a-f-]{36}$/i.test(sessionId)) {
+        return errorResponse("INVALID_SCHEMA", "sessionId (uuid) is required", 400);
+      }
+
+      // Allow resuming: without an explicit hash, look up this session's latest invoice
+      if (!hash) {
+        const lastHash = await kv.get(`tg_session:${sessionId}`);
+        if (!lastHash) return jsonResponse({ paid: false, status: "none" }, 200);
+        hash = lastHash;
+      }
+      if (!/^[A-Za-z0-9_-]{6,64}$/.test(hash)) {
+        return errorResponse("INVALID_SCHEMA", "Invalid hash", 400);
       }
 
       const raw = await kv.get(`tg_invoice:${hash}`);
-      if (!raw) return jsonResponse({ paid: false, status: "unknown" }, 200);
-      const record = JSON.parse(raw) as { invoiceId: number; sessionId: string; plan: string; amount: string; activated: boolean };
+      if (!raw) return jsonResponse({ paid: false, status: "unknown", hash }, 200);
+      const record = JSON.parse(raw) as { invoiceId: number; sessionId: string; plan: string; amount: string; url?: string; activated: boolean };
       if (record.sessionId !== sessionId) {
         return errorResponse("FORBIDDEN", "Session mismatch", 403);
       }
       if (record.activated) {
-        return jsonResponse({ paid: true, plan: record.plan }, 200);
+        return jsonResponse({ paid: true, plan: record.plan, hash }, 200);
       }
 
       const invoice = await getInvoice(record.invoiceId);
-      if (!invoice) return jsonResponse({ paid: false, status: "unknown" }, 200);
+      if (!invoice) return jsonResponse({ paid: false, status: "unknown", hash, url: record.url }, 200);
 
       const paid = invoice.status === "paid" || !!invoice.paid_at;
       if (paid) {
         await activate(record.plan, sessionId, `cryptobot:${hash}`, record.amount);
         await kv.set(`tg_invoice:${hash}`, JSON.stringify({ ...record, activated: true }), INVOICE_TTL);
-        return jsonResponse({ paid: true, plan: record.plan }, 200);
+        return jsonResponse({ paid: true, plan: record.plan, hash }, 200);
       }
 
-      return jsonResponse({ paid: false, status: invoice.status === "expired" ? "expired" : "active" }, 200);
+      return jsonResponse({ paid: false, status: invoice.status === "expired" ? "expired" : "active", hash, url: record.url }, 200);
     }
 
     return errorResponse("METHOD_NOT_ALLOWED", "Only GET and POST are allowed", 405);

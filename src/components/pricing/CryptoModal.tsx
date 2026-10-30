@@ -121,6 +121,20 @@ export function CryptoModal({
   const createInvoice = useCallback(async () => {
     setTg({ phase: "creating" });
     try {
+      // Resume this session's latest invoice instead of creating a duplicate
+      const last = await fetch(`/api/crypto/telegram-pay?sessionId=${sessionId}`)
+        .then((r) => r.json())
+        .catch(() => null) as { success?: boolean; data?: { paid?: boolean; status?: string; hash?: string; url?: string } } | null;
+      const ld = last?.data;
+      if (ld?.paid) {
+        setTg({ phase: "paid" });
+        return;
+      }
+      if (ld?.status === "active" && ld.hash && ld.url) {
+        setTg({ phase: "waiting", url: ld.url, hash: ld.hash });
+        return;
+      }
+
       const res = await fetch("/api/crypto/telegram-pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
