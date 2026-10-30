@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PricingPage } from "../pricing/PricingPage";
 import { LanguageSwitcher } from "../layout/LanguageSwitcher";
+import { useUserStore } from "../../stores/user.store";
 
 export function LandingPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const plan = useUserStore((s) => s.plan);
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -32,6 +34,15 @@ export function LandingPage() {
             >
               {t("pricing.title")}
             </button>
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded-full ${
+                plan === "free"
+                  ? "bg-gray-800 text-gray-400"
+                  : "bg-amber-500/20 text-amber-400"
+              }`}
+            >
+              {plan === "free" ? t("editor.free") : plan === "lifetime" ? t("editor.lifetime") : t("editor.pro")}
+            </span>
             <LanguageSwitcher />
             <button
               onClick={() => navigate("/editor")}

@@ -175,6 +175,17 @@
     "receiptSkipped": "No receipt email requested.",
     "receiptFailed": "Could not send receipt email.",
     "wrongAmount": "Sent the wrong amount or network? Contact us with your TxID to resolve it.",
+    "success": {
+      "title": "Payment successful!",
+      "congrats": "Congratulations! Your {{plan}} plan is now active on this device.",
+      "amount": "Amount",
+      "method": "Payment method",
+      "methodTelegram": "Telegram (CryptoBot)",
+      "methodTrc20": "USDT transfer (TRC-20)",
+      "reference": "Reference",
+      "openEditor": "Open Editor",
+      "close": "Close"
+    },
     "telegram": {
       "desc": "Easier: pay in Telegram via CryptoBot — no TxID needed.",
       "create": "Pay via Telegram (CryptoBot)",

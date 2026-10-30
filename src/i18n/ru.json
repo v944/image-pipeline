@@ -175,6 +175,17 @@
     "receiptSkipped": "Email для квитанции не указан.",
     "receiptFailed": "Не удалось отправить квитанцию.",
     "wrongAmount": "Отправили не ту сумму или сеть? Напишите нам с вашим TxID.",
+    "success": {
+      "title": "Оплата прошла успешно!",
+      "congrats": "Поздравляем! Теперь у вас подписка {{plan}}.",
+      "amount": "Сумма",
+      "method": "Способ оплаты",
+      "methodTelegram": "Telegram (CryptoBot)",
+      "methodTrc20": "Перевод USDT (TRC-20)",
+      "reference": "Идентификатор",
+      "openEditor": "Открыть редактор",
+      "close": "Закрыть"
+    },
     "telegram": {
       "desc": "Проще: оплатите в Telegram через CryptoBot — TxID не нужен.",
       "create": "Оплатить через Telegram (CryptoBot)",

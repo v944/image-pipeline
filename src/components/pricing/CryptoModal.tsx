@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Copy, Check, Loader2, ExternalLink, Mail, Send } from "lucide-react";
+import { X, Copy, Check, Loader2, ExternalLink, Mail, Send, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
 import { useVerifyTrc20 } from "../../hooks/useVerifyTrc20";
@@ -213,6 +214,8 @@ export function CryptoModal({
   };
 
   const txFlowBusy = status === "checking" || status === "verified" || tg.phase === "waiting" || tg.phase === "paid";
+  const paid = status === "verified" || tg.phase === "paid";
+  const navigate = useNavigate();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -227,6 +230,73 @@ export function CryptoModal({
           </button>
         </div>
 
+        {paid ? (
+          <div className="space-y-4 text-center">
+            <div className="flex justify-center pt-2">
+              <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center">
+                <CheckCircle2 className="w-9 h-9 text-green-400" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-100">{t("cryptoModal.success.title")}</h3>
+              <p className="text-sm text-gray-400 mt-1">{t("cryptoModal.success.congrats", { plan: price.label })}</p>
+            </div>
+            <div className="bg-[#0D0D14] rounded-xl p-4 text-left space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">{t("cryptoModal.plan")}</span>
+                <span className="text-gray-200 font-medium">{price.label}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">{t("cryptoModal.success.amount")}</span>
+                <span className="text-amber-400 font-semibold">{price.usdt} USDT</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-500">{t("cryptoModal.success.method")}</span>
+                <span className="text-gray-200">{tg.phase === "paid" ? t("cryptoModal.success.methodTelegram") : t("cryptoModal.success.methodTrc20")}</span>
+              </div>
+              {(tg.hash || txInput.trim()) && (
+                <div className="flex items-center justify-between text-sm gap-4">
+                  <span className="text-gray-500 shrink-0">{t("cryptoModal.success.reference")}</span>
+                  <span className="text-gray-400 font-mono text-xs truncate">
+                    {tg.phase === "paid" ? `cryptobot:${tg.hash}` : txInput.trim()}
+                  </span>
+                </div>
+              )}
+            </div>
+            {receiptStatus === "sending" && (
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                {t("cryptoModal.receiptSending")}
+              </div>
+            )}
+            {receiptStatus === "sent" && (
+              <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
+                <Mail className="w-3 h-3" />
+                {t("cryptoModal.receiptSent", { email: emailInput })}
+              </div>
+            )}
+            {receiptStatus === "skipped" && (
+              <div className="text-xs text-gray-500 text-center">{t("cryptoModal.receiptSkipped")}</div>
+            )}
+            {receiptStatus === "failed" && (
+              <div className="text-xs text-amber-500 text-center">{t("cryptoModal.receiptFailed")}</div>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => { reset(); onClose(); }}
+                className="flex-1 bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              >
+                {t("cryptoModal.success.close")}
+              </button>
+              <button
+                onClick={() => { reset(); navigate("/editor"); }}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 text-black px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              >
+                {t("cryptoModal.success.openEditor")}
+              </button>
+            </div>
+          </div>
+        ) : (
         <div className="space-y-4">
           <div className="bg-[#0D0D14] rounded-xl p-4 space-y-3">
             <div className="flex items-center justify-between">
@@ -400,40 +470,11 @@ export function CryptoModal({
             </div>
           )}
 
-          {(status === "verified" || tg.phase === "paid") && (
-            <div className="space-y-3">
-              <div className="text-sm text-green-400 text-center py-2 font-medium">
-                {t("cryptoModal.verified", { plan: price.label })}
-              </div>
-              {receiptStatus === "sending" && (
-                <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  {t("cryptoModal.receiptSending")}
-                </div>
-              )}
-              {receiptStatus === "sent" && (
-                <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400">
-                  <Mail className="w-3 h-3" />
-                  {t("cryptoModal.receiptSent", { email: emailInput })}
-                </div>
-              )}
-              {receiptStatus === "skipped" && (
-                <div className="text-xs text-gray-500 text-center">
-                  {t("cryptoModal.receiptSkipped")}
-                </div>
-              )}
-              {receiptStatus === "failed" && (
-                <div className="text-xs text-amber-500 text-center">
-                  {t("cryptoModal.receiptFailed")}
-                </div>
-              )}
-            </div>
-          )}
-
           <p className="text-[10px] text-gray-600 text-center">
             {t("cryptoModal.wrongAmount")}
           </p>
         </div>
+        )}
       </div>
     </div>
   );
