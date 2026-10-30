@@ -95,27 +95,55 @@ async function getInvoice(invoiceId: number): Promise<CryptoInvoice | null> {
   return list.find((inv) => inv.invoice_id === invoiceId) || null;
 }
 
-async function findLatestInvoiceHash(sessionId: string): Promise<string | null> {
-  const direct = await kv.get(`tg_session:${sessionId}`);
-  if (direct) return direct;
-  // Fallback for invoices created before per-session tracking was added
+interface SessionInvoice {
+  hash: string;
+  record: { invoiceId: number; sessionId: string; plan: string; amount: string; url?: string; activated: boolean; createdAt?: string };
+}
+
+async function getSessionInvoices(sessionId: string): Promise<SessionInvoice[]> {
   const keys = await kv.keys("tg_invoice:*");
-  let best: { hash: string; createdAt: string } | null = null;
+  const out: SessionInvoice[] = [];
   for (const k of keys) {
     const raw = await kv.get(k);
     if (!raw) continue;
     try {
-      const rec = JSON.parse(raw) as { sessionId?: string; createdAt?: string };
-      if (rec.sessionId !== sessionId) continue;
-      const hash = k.slice("tg_invoice:".length);
-      if (!best || (rec.createdAt || "") > best.createdAt) {
-        best = { hash, createdAt: rec.createdAt || "" };
-      }
+      const record = JSON.parse(raw) as SessionInvoice["record"];
+      if (record.sessionId !== sessionId) continue;
+      out.push({ hash: k.slice("tg_invoice:".length), record });
     } catch {
       // skip malformed record
     }
   }
-  return best ? best.hash : null;
+  out.sort((a, b) => (b.record.createdAt || "").localeCompare(a.record.createdAt || ""));
+  return out;
+}
+
+type ResolvedInvoice =
+  | { kind: "paid"; hash: string; plan: string }
+  | { kind: "active"; hash: string; url: string; invoiceId: number }
+  | { kind: "none" };
+
+async function resolveSessionInvoice(sessionId: string): Promise<ResolvedInvoice> {
+  const invoices = await getSessionInvoices(sessionId);
+  if (invoices.length === 0) return { kind: "none" };
+  const activated = invoices.find((i) => i.record.activated);
+  if (activated) return { kind: "paid", hash: activated.hash, plan: activated.record.plan };
+  // Check each of the session's invoices (normally 1-3) against CryptoBot and
+  // activate on ANY paid one — the user may have paid an older invoice.
+  let latestActive: SessionInvoice | null = null;
+  for (const inv of invoices) {
+    const cb = await getInvoice(inv.record.invoiceId);
+    if (cb && (cb.status === "paid" || !!cb.paid_at)) {
+      await activate(inv.record.plan, sessionId, `cryptobot:${inv.hash}`, inv.record.amount);
+      await kv.set(`tg_invoice:${inv.hash}`, JSON.stringify({ ...inv.record, activated: true }), INVOICE_TTL);
+      return { kind: "paid", hash: inv.hash, plan: inv.record.plan };
+    }
+    if (cb && cb.status !== "expired" && !latestActive) latestActive = inv;
+  }
+  if (latestActive) {
+    return { kind: "active", hash: latestActive.hash, url: latestActive.record.url || "", invoiceId: latestActive.record.invoiceId };
+  }
+  return { kind: "none" };
 }
 
 export default async function handler(request: Request): Promise<Response> {
@@ -150,28 +178,13 @@ export default async function handler(request: Request): Promise<Response> {
         return errorResponse("INVALID_SCHEMA", "tier (pro|lifetime) and sessionId (uuid) are required", 400);
       }
 
-      // Resume this session's latest invoice instead of creating duplicates
-      const existingHash = await findLatestInvoiceHash(sessionId);
-      if (existingHash) {
-        const rawExisting = await kv.get(`tg_invoice:${existingHash}`);
-        if (rawExisting) {
-          try {
-            const rec = JSON.parse(rawExisting) as { invoiceId: number; sessionId: string; plan: string; amount: string; url?: string; activated: boolean };
-            if (rec.sessionId === sessionId && !rec.activated) {
-              const existing = await getInvoice(rec.invoiceId);
-              if (existing && (existing.status === "paid" || !!existing.paid_at)) {
-                await activate(rec.plan, sessionId, `cryptobot:${existingHash}`, rec.amount);
-                await kv.set(`tg_invoice:${existingHash}`, JSON.stringify({ ...rec, activated: true }), INVOICE_TTL);
-                return jsonResponse({ configured: true, hash: existingHash, invoiceId: rec.invoiceId, url: rec.url || "", paid: true, plan: rec.plan }, 200);
-              }
-              if (existing && existing.status !== "expired" && rec.url) {
-                return jsonResponse({ configured: true, hash: existingHash, invoiceId: rec.invoiceId, url: rec.url, paid: false, status: "active" }, 200);
-              }
-            }
-          } catch {
-            // fall through and create a new invoice
-          }
-        }
+      // Resume this session's invoices instead of creating duplicates
+      const resolved = await resolveSessionInvoice(sessionId);
+      if (resolved.kind === "paid") {
+        return jsonResponse({ configured: true, hash: resolved.hash, invoiceId: 0, url: "", paid: true, plan: resolved.plan }, 200);
+      }
+      if (resolved.kind === "active") {
+        return jsonResponse({ configured: true, hash: resolved.hash, invoiceId: resolved.invoiceId, url: resolved.url, paid: false, status: "active" }, 200);
       }
 
       const plan = PLANS[tier];
@@ -204,8 +217,6 @@ export default async function handler(request: Request): Promise<Response> {
         createdAt: new Date().toISOString(),
       }), INVOICE_TTL);
 
-      await kv.set(`tg_session:${sessionId}`, invoice.hash, INVOICE_TTL);
-
       return jsonResponse({
         configured: true,
         hash: invoice.hash,
@@ -230,11 +241,12 @@ export default async function handler(request: Request): Promise<Response> {
         return errorResponse("INVALID_SCHEMA", "sessionId (uuid) is required", 400);
       }
 
-      // Allow resuming: without an explicit hash, look up this session's latest invoice
+      // Without an explicit hash, resolve this session's invoices (activate if any is paid)
       if (!hash) {
-        const lastHash = await findLatestInvoiceHash(sessionId);
-        if (!lastHash) return jsonResponse({ paid: false, status: "none" }, 200);
-        hash = lastHash;
+        const resolved = await resolveSessionInvoice(sessionId);
+        if (resolved.kind === "paid") return jsonResponse({ paid: true, plan: resolved.plan, hash: resolved.hash }, 200);
+        if (resolved.kind === "active") return jsonResponse({ paid: false, status: "active", hash: resolved.hash, url: resolved.url }, 200);
+        return jsonResponse({ paid: false, status: "none" }, 200);
       }
       if (!/^[A-Za-z0-9_-]{6,64}$/.test(hash)) {
         return errorResponse("INVALID_SCHEMA", "Invalid hash", 400);
