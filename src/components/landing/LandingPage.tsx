@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Shield, Zap, Layers, Check, Loader2, Play, X } from "lucide-react";
+import { ArrowRight, Shield, Zap, Layers, Check, Loader2, Play, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PricingPage } from "../pricing/PricingPage";
@@ -11,6 +11,7 @@ export function LandingPage() {
   const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
   const [showDemo, setShowDemo] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -105,6 +106,25 @@ export function LandingPage() {
           )}
         </section>
 
+        <section className="max-w-6xl mx-auto px-6 py-16 text-center border-t border-white/5">
+          <h2 className="text-3xl font-bold mb-10">{t("landing.problemTitle")}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-4">
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-left">
+              <h3 className="text-base font-semibold mb-2 text-red-400">{t("landing.problem1Title")}</h3>
+              <p className="text-sm text-gray-400">{t("landing.problem1Desc")}</p>
+            </div>
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-left">
+              <h3 className="text-base font-semibold mb-2 text-red-400">{t("landing.problem2Title")}</h3>
+              <p className="text-sm text-gray-400">{t("landing.problem2Desc")}</p>
+            </div>
+            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-left">
+              <h3 className="text-base font-semibold mb-2 text-red-400">{t("landing.problem3Title")}</h3>
+              <p className="text-sm text-gray-400">{t("landing.problem3Desc")}</p>
+            </div>
+          </div>
+          <p className="mt-8 text-lg text-amber-400 font-medium max-w-2xl mx-auto">{t("landing.problemSolution")}</p>
+        </section>
+
         <section className="max-w-6xl mx-auto px-6 py-16 text-center">
           <h2 className="text-3xl font-bold mb-10">{t("landing.howTitle")}</h2>
           <div className="grid grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -146,6 +166,48 @@ export function LandingPage() {
           </div>
         </section>
 
+        <section className="max-w-6xl mx-auto px-6 py-16 text-center border-t border-white/5">
+          <h2 className="text-3xl font-bold mb-10">{t("landing.compareTitle")}</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full max-w-4xl mx-auto text-sm border-collapse min-w-[640px]">
+              <thead>
+                <tr>
+                  <th className="p-3" />
+                  <th className="p-3 rounded-t-lg bg-amber-500/10 text-amber-400 font-semibold whitespace-nowrap">{t("landing.compareColIp")}</th>
+                  <th className="p-3 text-gray-400 font-medium whitespace-nowrap">{t("landing.compareColPsa")}</th>
+                  <th className="p-3 text-gray-400 font-medium whitespace-nowrap">{t("landing.compareColIm")}</th>
+                  <th className="p-3 text-gray-400 font-medium whitespace-nowrap">{t("landing.compareColCloud")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { label: t("landing.compareRowPrivacy"), cells: [t("landing.comparePrivacyIp"), t("landing.comparePrivacyPsa"), t("landing.comparePrivacyIm"), t("landing.comparePrivacyCloud")] },
+                  { label: t("landing.compareRowPreview"), cells: [t("landing.comparePreviewIp"), t("landing.comparePreviewPsa"), t("landing.comparePreviewIm"), t("landing.comparePreviewCloud")] },
+                  { label: t("landing.compareRowSetup"), cells: [t("landing.compareSetupIp"), t("landing.compareSetupPsa"), t("landing.compareSetupIm"), t("landing.compareSetupCloud")] },
+                  { label: t("landing.compareRowPrice"), cells: [t("landing.comparePriceIp"), t("landing.comparePricePsa"), t("landing.comparePriceIm"), t("landing.comparePriceCloud")] },
+                ].map((row, i) => (
+                  <tr key={i} className="border-t border-white/5">
+                    <td className="p-3 text-left text-gray-500 whitespace-nowrap">{row.label}</td>
+                    {row.cells.map((cell, j) => (
+                      <td key={j} className={`p-3 ${j === 0 ? "bg-amber-500/5 text-gray-200 font-medium" : "text-gray-400"}`}>{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="text-center py-8">
+          <button
+            onClick={() => navigate("/editor")}
+            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-8 py-3.5 rounded-xl text-lg font-bold transition-all hover:-translate-y-0.5"
+          >
+            {t("landing.ctaButton")}
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </section>
+
         <PricingPage />
 
         <section className="max-w-6xl mx-auto px-6 py-16 text-center border-t border-white/5">
@@ -168,6 +230,29 @@ export function LandingPage() {
             &ldquo;{t("landing.testimonial")}&rdquo;
             <cite className="block text-sm text-gray-500 mt-2 not-italic">&mdash; {t("landing.testimonialAuthor")}</cite>
           </blockquote>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-6 py-16 border-t border-white/5">
+          <h2 className="text-3xl font-bold mb-8 text-center">{t("landing.faqTitle")}</h2>
+          <div className="max-w-2xl mx-auto space-y-3">
+            {[
+              { q: t("landing.faq1Q"), a: t("landing.faq1A") },
+              { q: t("landing.faq2Q"), a: t("landing.faq2A") },
+              { q: t("landing.faq3Q"), a: t("landing.faq3A") },
+              { q: t("landing.faq4Q"), a: t("landing.faq4A") },
+            ].map((item, i) => (
+              <div key={i} className="rounded-xl bg-white/[0.02] border border-white/5">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex justify-between items-center gap-3 p-4 text-left text-sm font-medium text-gray-200 hover:text-gray-100 transition-colors"
+                >
+                  {item.q}
+                  {openFaq === i ? <ChevronUp className="w-4 h-4 shrink-0 text-gray-500" /> : <ChevronDown className="w-4 h-4 shrink-0 text-gray-500" />}
+                </button>
+                {openFaq === i && <p className="px-4 pb-4 text-sm text-gray-400 leading-relaxed">{item.a}</p>}
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-6 py-12 text-center border-t border-white/5">

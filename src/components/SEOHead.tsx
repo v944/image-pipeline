@@ -3,6 +3,33 @@ import { useLocation } from "react-router-dom";
 
 const SITE = "https://imagepipeline.art";
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Do I need a crypto wallet to pay?",
+      acceptedAnswer: { "@type": "Answer", text: "No. You can pay in Telegram via CryptoBot in two taps — or transfer USDT (TRC-20) from any wallet or exchange." },
+    },
+    {
+      "@type": "Question",
+      name: "Where are my images uploaded?",
+      acceptedAnswer: { "@type": "Answer", text: "Nowhere. All processing runs in your browser via the Canvas API. Close the tab — nothing is stored anywhere." },
+    },
+    {
+      "@type": "Question",
+      name: "What do I get for free?",
+      acceptedAnswer: { "@type": "Answer", text: "10 files per batch, 4 nodes per pipeline, 10 batches a day — all node types included, no signup." },
+    },
+    {
+      "@type": "Question",
+      name: "Is it a subscription?",
+      acceptedAnswer: { "@type": "Answer", text: "No. Pro is a one-time payment, Lifetime is Pro forever — including future nodes." },
+    },
+  ],
+};
+
 const pages: Record<string, { title: string; description: string }> = {
   "/": {
     title: "Image Pipeline — Batch Image Processing",
@@ -49,6 +76,17 @@ export function SEOHead() {
     setMeta("og:description", page.description);
     setMeta("og:url", url);
     setCanonical(url);
+
+    const faqScript = document.querySelector('script[data-jsonld="faq"]');
+    if (pathname === "/") {
+      let script = faqScript ?? document.createElement("script");
+      script.setAttribute("type", "application/ld+json");
+      script.setAttribute("data-jsonld", "faq");
+      if (!faqScript) document.head.appendChild(script);
+      script.textContent = JSON.stringify(faqSchema);
+    } else if (faqScript) {
+      faqScript.remove();
+    }
   }, [pathname]);
 
   return null;
