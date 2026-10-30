@@ -228,7 +228,17 @@ export function LandingPage() {
           </div>
           <blockquote className="max-w-xl mx-auto text-gray-400 italic">
             &ldquo;{t("landing.testimonial")}&rdquo;
-            <cite className="block text-sm text-gray-500 mt-2 not-italic">&mdash; {t("landing.testimonialAuthor")}</cite>
+            <cite className="block text-sm text-gray-500 mt-2 not-italic">
+              &mdash;{" "}
+              <a
+                href="https://alternativeto.net/software/image-pipeline/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-amber-400 transition-colors"
+              >
+                {t("landing.testimonialAuthor")}
+              </a>
+            </cite>
           </blockquote>
         </section>
 
