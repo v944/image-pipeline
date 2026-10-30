@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Shield, Zap, Layers, Check, Loader2 } from "lucide-react";
+import { ArrowRight, Shield, Zap, Layers, Check, Loader2, Play, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PricingPage } from "../pricing/PricingPage";
@@ -10,6 +10,7 @@ export function LandingPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
+  const [showDemo, setShowDemo] = useState(false);
   const [email, setEmail] = useState("");
   const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -66,23 +67,23 @@ export function LandingPage() {
             {t("landing.heroDesc")}
           </p>
 
-          <div className="max-w-3xl mx-auto mb-10 rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
-            <img
-              src="/demo.gif"
-              alt="Image Pipeline demo: drag images, add nodes, process, download ZIP"
-              className="w-full h-auto block"
-              loading="lazy"
-            />
-          </div>
-
           <div className="cta-wrapper">
-            <button
-              onClick={() => navigate("/editor")}
-              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-10 py-4 rounded-xl text-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(245,158,11,0.4)] hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)]"
-            >
-              {t("landing.ctaButton")}
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <div className="flex justify-center items-center gap-3 flex-wrap">
+              <button
+                onClick={() => navigate("/editor")}
+                className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black px-10 py-4 rounded-xl text-xl font-bold transition-all hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(245,158,11,0.4)] hover:shadow-[0_8px_25px_rgba(245,158,11,0.5)]"
+              >
+                {t("landing.ctaButton")}
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setShowDemo((v) => !v)}
+                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-4 rounded-xl text-base font-semibold transition-all hover:-translate-y-0.5"
+              >
+                {showDemo ? <X className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                {showDemo ? t("landing.hideDemo") : t("landing.watchDemo")}
+              </button>
+            </div>
             <p className="mt-3 text-sm text-gray-500">
               {t("landing.ctaSubtext")}
             </p>
@@ -92,6 +93,16 @@ export function LandingPage() {
               <span className="inline-flex items-center gap-1">{t("landing.trustBrowser")}</span>
             </p>
           </div>
+
+          {showDemo && (
+            <div className="max-w-3xl mx-auto mt-10 rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+              <img
+                src="/demo.gif"
+                alt="Image Pipeline demo: drag images, add nodes, process, download ZIP"
+                className="w-full h-auto block"
+              />
+            </div>
+          )}
         </section>
 
         <section className="max-w-6xl mx-auto px-6 py-16 text-center">

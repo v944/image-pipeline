@@ -53,6 +53,8 @@
     "testimonial": "Node-based editor feels great for batch resizing — way faster than scripting.",
     "testimonialAuthor": "Bahar, Designer",
     "emailTitle": "Stay updated",
+    "watchDemo": "Watch demo",
+    "hideDemo": "Hide demo",
     "emailDesc": "Get notified about new nodes, features, and exclusive offers.",
     "emailPlaceholder": "your@email.com",
     "emailButton": "Subscribe",
