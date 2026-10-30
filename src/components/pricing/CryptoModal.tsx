@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Copy, Check, Loader2, ExternalLink, Mail } from "lucide-react";
+import { X, Copy, Check, Loader2, ExternalLink, Mail, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
 import { useVerifyTrc20 } from "../../hooks/useVerifyTrc20";
@@ -12,6 +12,8 @@ const PRICES: Record<string, { label: string; usdt: number; months: number }> = 
   pro: { label: "Pro", usdt: 10, months: 1200 },
   lifetime: { label: "Lifetime", usdt: 30, months: 1200 },
 };
+
+type TgPhase = "idle" | "creating" | "waiting" | "timeout" | "expired" | "error" | "paid";
 
 export function CryptoModal({
   tier,
@@ -33,6 +35,7 @@ export function CryptoModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [qrsrc, setQrsrc] = useState("");
+  const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string }>({ phase: "idle" });
 
   useEffect(() => {
     let cancelled = false;
@@ -77,7 +80,7 @@ export function CryptoModal({
         body: JSON.stringify({
           email,
           plan: tier,
-          txId: txInput.trim(),
+          txId: txInput.trim() || `cryptobot:${tg.hash || ""}`,
           sessionId,
         }),
       });
@@ -90,19 +93,67 @@ export function CryptoModal({
     } catch {
       setReceiptStatus("failed");
     }
-  }, [tier, txInput, sessionId]);
+  }, [tier, txInput, sessionId, tg.hash]);
+
+  const checkInvoice = useCallback(async (hash: string) => {
+    try {
+      const res = await fetch(`/api/crypto/telegram-pay?hash=${encodeURIComponent(hash)}&sessionId=${sessionId}`);
+      const data = await res.json() as { success: boolean; data?: { paid?: boolean; plan?: string; status?: string } };
+      const d = data.data;
+      if (!data.success || !d) return;
+      if (d.paid) {
+        setTg((s) => ({ ...s, phase: "paid" }));
+      } else if (d.status === "expired") {
+        setTg((s) => (s.phase === "waiting" || s.phase === "timeout" ? { ...s, phase: "expired" } : s));
+      }
+    } catch {
+      // transient network error — polling continues
+    }
+  }, [sessionId]);
+
+  const createInvoice = useCallback(async () => {
+    setTg({ phase: "creating" });
+    try {
+      const res = await fetch("/api/crypto/telegram-pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier, sessionId }),
+      });
+      const data = await res.json() as { success: boolean; data?: { configured?: boolean; url?: string; hash?: string } };
+      const d = data.data;
+      if (!data.success || !d?.url || !d.hash) {
+        setTg({ phase: "error" });
+        return;
+      }
+      window.open(d.url, "_blank", "noopener,noreferrer");
+      setTg({ phase: "waiting", url: d.url, hash: d.hash });
+    } catch {
+      setTg({ phase: "error" });
+    }
+  }, [tier, sessionId]);
 
   useEffect(() => {
-    if (status === "verified") {
+    if (tg.phase !== "waiting" || !tg.hash) return;
+    const hash = tg.hash;
+    void checkInvoice(hash);
+    const iv = setInterval(() => void checkInvoice(hash), 5000);
+    const to = setTimeout(() => {
+      setTg((s) => (s.phase === "waiting" ? { ...s, phase: "timeout" } : s));
+    }, 10 * 60 * 1000);
+    return () => { clearInterval(iv); clearTimeout(to); };
+  }, [tg.phase, tg.hash, checkInvoice]);
+
+  useEffect(() => {
+    if (status === "verified" || tg.phase === "paid") {
       syncPlanFromServer();
-      trackEvent(Events.PURCHASE_COMPLETED, { plan: tier, price: price.usdt });
+      trackEvent(Events.PURCHASE_COMPLETED, { plan: tier, price: price.usdt, method: tg.phase === "paid" ? "cryptobot" : "trc20" });
       if (emailInput && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
         sendReceipt(emailInput);
       } else {
         setReceiptStatus("skipped");
       }
     }
-  }, [status, syncPlanFromServer, tier, price.usdt, emailInput, sendReceipt]);
+  }, [status, tg.phase, syncPlanFromServer, tier, price.usdt, emailInput, sendReceipt]);
 
   const checkActivation = useCallback(async () => {
     try {
@@ -131,6 +182,8 @@ export function CryptoModal({
       startChecking(sessionId, txInput.trim());
     }
   };
+
+  const txFlowBusy = status === "checking" || status === "verified" || tg.phase === "waiting" || tg.phase === "paid";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -163,6 +216,54 @@ export function CryptoModal({
             </div>
           </div>
 
+          <div className="bg-[#0D0D14] rounded-xl p-4 space-y-2">
+            <p className="text-xs text-gray-500">{t("cryptoModal.telegram.desc")}</p>
+            {(tg.phase === "idle" || tg.phase === "creating" || tg.phase === "error" || tg.phase === "expired") && (
+              <div className="space-y-2">
+                {(tg.phase === "error" || tg.phase === "expired") && (
+                  <p className="text-xs text-red-400">
+                    {tg.phase === "expired" ? t("cryptoModal.telegram.expired") : t("cryptoModal.telegram.error")}
+                  </p>
+                )}
+                <button
+                  onClick={createInvoice}
+                  disabled={tg.phase === "creating"}
+                  className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  {tg.phase === "creating" && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <Send className="w-4 h-4" />
+                  {t("cryptoModal.telegram.create")}
+                </button>
+              </div>
+            )}
+            {(tg.phase === "waiting" || tg.phase === "timeout") && tg.url && (
+              <div className="space-y-2">
+                <a
+                  href={tg.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {t("cryptoModal.telegram.open")}
+                </a>
+                {tg.phase === "waiting" ? (
+                  <p className="text-xs text-gray-500 flex items-center justify-center gap-1.5">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    {t("cryptoModal.telegram.waiting")}
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => tg.hash && checkInvoice(tg.hash)}
+                    className="w-full bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    {t("cryptoModal.telegram.check")}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="bg-[#0D0D14] rounded-xl p-4">
             <label className="text-xs text-gray-500 mb-1 block">{t("cryptoModal.sendTo")}</label>
             <div className="flex items-center gap-2">
@@ -193,7 +294,7 @@ export function CryptoModal({
               onChange={(e) => setTxInput(e.target.value)}
               placeholder={t("cryptoModal.txIdPlaceholder")}
               className="w-full bg-[#0D0D14] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 font-mono placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
-              disabled={status === "checking" || status === "verified"}
+              disabled={txFlowBusy}
             />
           </div>
 
@@ -207,11 +308,11 @@ export function CryptoModal({
               onChange={(e) => setEmailInput(e.target.value)}
               placeholder={t("cryptoModal.emailPlaceholder")}
               className="w-full bg-[#0D0D14] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
-              disabled={status === "checking" || status === "verified"}
+              disabled={txFlowBusy}
             />
           </div>
 
-          {status === "idle" && (
+          {status === "idle" && tg.phase !== "paid" && (
             <button
               onClick={handleVerify}
               disabled={!txInput.trim()}
@@ -265,7 +366,7 @@ export function CryptoModal({
             </div>
           )}
 
-          {status === "verified" && (
+          {(status === "verified" || tg.phase === "paid") && (
             <div className="space-y-3">
               <div className="text-sm text-green-400 text-center py-2 font-medium">
                 {t("cryptoModal.verified", { plan: price.label })}

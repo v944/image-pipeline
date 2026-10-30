@@ -174,7 +174,16 @@
     "receiptSent": "Receipt sent to {{email}}",
     "receiptSkipped": "No receipt email requested.",
     "receiptFailed": "Could not send receipt email.",
-    "wrongAmount": "Sent the wrong amount or network? Contact us with your TxID to resolve it."
+    "wrongAmount": "Sent the wrong amount or network? Contact us with your TxID to resolve it.",
+    "telegram": {
+      "desc": "Easier: pay in Telegram via CryptoBot — no TxID needed.",
+      "create": "Pay via Telegram (CryptoBot)",
+      "open": "Open Telegram & pay",
+      "waiting": "Waiting for payment in Telegram...",
+      "check": "Check payment status",
+      "expired": "Invoice expired. Create a new one.",
+      "error": "Could not create invoice. Try again later."
+    }
   },
   "share": {
     "loading": "Loading shared pipeline...",

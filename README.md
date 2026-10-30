@@ -125,6 +125,7 @@ All endpoints are deployed as Vercel Edge Functions at `https://imagepipeline.ar
 | `POST /api/event` | Anonymous usage event |
 | `GET /api/check-limit` | Check rate limit (session-based) |
 | `POST /api/crypto/verify` | Verify USDT TRC-20 transaction |
+| `POST/GET /api/crypto/telegram-pay` | CryptoBot (Telegram) invoice create/status |
 | `GET /api/crypto/check` | Check activation status by sessionId |
 | `POST /api/crypto/receipt` | Send payment confirmation email |
 | `GET /api/crypto/config` | Wallet address + current prices |

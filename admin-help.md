@@ -97,6 +97,8 @@ Authorization: Bearer YOUR_CRON_SECRET
 | `APP_URL` | Базовый URL для ссылок в письмах |
 | `USDT_ADDRESS` / `USDT_CONTRACT` | Кошелёк и контракт USDT TRC-20 |
 | `TRONGRID_API_KEY` | Ключ Trongrid (фолбэк верификации платежей, опционально) |
+| `CRYPTOBOT_API_TOKEN` | Токен Crypto Pay для оплаты через Telegram (@CryptoBot → Crypto Pay → Create App) |
+| `CRYPTOBOT_API_URL` | API CryptoBot (по умолчанию `https://pay.crypt.bot/api`; тестнет: `https://testnet-pay.crypt.bot/api`) |
 | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Upstash Redis |
 
 ---

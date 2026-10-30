@@ -70,6 +70,7 @@
     { "source": "/api/check-limit", "destination": "/api/check-limit.ts" },
     { "source": "/api/crypto/config", "destination": "/api/crypto/config.ts" },
     { "source": "/api/crypto/recover", "destination": "/api/crypto/recover.ts" },
+    { "source": "/api/crypto/telegram-pay", "destination": "/api/crypto/telegram-pay.ts" },
     { "source": "/api/crypto/verify", "destination": "/api/crypto/verify.ts" },
     { "source": "/api/pipeline/share", "destination": "/api/pipeline/share.ts" },
     { "source": "/api/pipeline/([^/]+)", "destination": "/api/pipeline/[shareId].ts" },
