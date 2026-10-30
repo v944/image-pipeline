@@ -140,7 +140,7 @@ export function CryptoModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tier, sessionId }),
       });
-      const data = await res.json() as { success: boolean; data?: { configured?: boolean; url?: string; hash?: string } };
+      const data = await res.json() as { success: boolean; data?: { configured?: boolean; url?: string; hash?: string; paid?: boolean; plan?: string } };
       const d = data.data;
       if (!data.success || !d?.hash) {
         setTg({ phase: "error" });
