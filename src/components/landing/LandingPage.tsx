@@ -210,6 +210,9 @@ export function LandingPage() {
             <a href="https://tools.launchllama.co/products/image-pipeline?utm_source=badge&utm_medium=referral" target="_blank" rel="noopener noreferrer">
               <img src="https://speaktechenglish.com/wp-content/uploads/2026/04/Screenshot_2026-04-09_at_17.40.44-removebg-preview.png" alt="Featured on Launch Llama" width="200" height="50" />
             </a>
+            <a href="https://alternativeto.net/software/image-pipeline/" target="_blank" rel="noopener noreferrer">
+              <img src="https://alternativeto.net/static/badges/badge-compact-color.svg" alt="Listed on AlternativeTo" width="154" height="50" />
+            </a>
           </div>
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>{t("common.appName")} &mdash; Open source batch image processing</span>
