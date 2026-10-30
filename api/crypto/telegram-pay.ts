@@ -95,6 +95,29 @@ async function getInvoice(invoiceId: number): Promise<CryptoInvoice | null> {
   return list.find((inv) => inv.invoice_id === invoiceId) || null;
 }
 
+async function findLatestInvoiceHash(sessionId: string): Promise<string | null> {
+  const direct = await kv.get(`tg_session:${sessionId}`);
+  if (direct) return direct;
+  // Fallback for invoices created before per-session tracking was added
+  const keys = await kv.keys("tg_invoice:*");
+  let best: { hash: string; createdAt: string } | null = null;
+  for (const k of keys) {
+    const raw = await kv.get(k);
+    if (!raw) continue;
+    try {
+      const rec = JSON.parse(raw) as { sessionId?: string; createdAt?: string };
+      if (rec.sessionId !== sessionId) continue;
+      const hash = k.slice("tg_invoice:".length);
+      if (!best || (rec.createdAt || "") > best.createdAt) {
+        best = { hash, createdAt: rec.createdAt || "" };
+      }
+    } catch {
+      // skip malformed record
+    }
+  }
+  return best ? best.hash : null;
+}
+
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") return corsResponse("GET, POST, OPTIONS");
 
@@ -125,6 +148,30 @@ export default async function handler(request: Request): Promise<Response> {
       const sessionId = typeof body.sessionId === "string" && /^[0-9a-f-]{36}$/i.test(body.sessionId) ? body.sessionId : null;
       if (!tier || !sessionId) {
         return errorResponse("INVALID_SCHEMA", "tier (pro|lifetime) and sessionId (uuid) are required", 400);
+      }
+
+      // Resume this session's latest invoice instead of creating duplicates
+      const existingHash = await findLatestInvoiceHash(sessionId);
+      if (existingHash) {
+        const rawExisting = await kv.get(`tg_invoice:${existingHash}`);
+        if (rawExisting) {
+          try {
+            const rec = JSON.parse(rawExisting) as { invoiceId: number; sessionId: string; plan: string; amount: string; url?: string; activated: boolean };
+            if (rec.sessionId === sessionId && !rec.activated) {
+              const existing = await getInvoice(rec.invoiceId);
+              if (existing && (existing.status === "paid" || !!existing.paid_at)) {
+                await activate(rec.plan, sessionId, `cryptobot:${existingHash}`, rec.amount);
+                await kv.set(`tg_invoice:${existingHash}`, JSON.stringify({ ...rec, activated: true }), INVOICE_TTL);
+                return jsonResponse({ configured: true, hash: existingHash, invoiceId: rec.invoiceId, url: rec.url || "", paid: true, plan: rec.plan }, 200);
+              }
+              if (existing && existing.status !== "expired" && rec.url) {
+                return jsonResponse({ configured: true, hash: existingHash, invoiceId: rec.invoiceId, url: rec.url, paid: false, status: "active" }, 200);
+              }
+            }
+          } catch {
+            // fall through and create a new invoice
+          }
+        }
       }
 
       const plan = PLANS[tier];
@@ -185,7 +232,7 @@ export default async function handler(request: Request): Promise<Response> {
 
       // Allow resuming: without an explicit hash, look up this session's latest invoice
       if (!hash) {
-        const lastHash = await kv.get(`tg_session:${sessionId}`);
+        const lastHash = await findLatestInvoiceHash(sessionId);
         if (!lastHash) return jsonResponse({ paid: false, status: "none" }, 200);
         hash = lastHash;
       }

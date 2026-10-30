@@ -142,7 +142,15 @@ export function CryptoModal({
       });
       const data = await res.json() as { success: boolean; data?: { configured?: boolean; url?: string; hash?: string } };
       const d = data.data;
-      if (!data.success || !d?.url || !d.hash) {
+      if (!data.success || !d?.hash) {
+        setTg({ phase: "error" });
+        return;
+      }
+      if (d.paid) {
+        setTg({ phase: "paid" });
+        return;
+      }
+      if (!d.url) {
         setTg({ phase: "error" });
         return;
       }
