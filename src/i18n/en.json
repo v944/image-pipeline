@@ -57,12 +57,15 @@
     "emailPlaceholder": "your@email.com",
     "emailButton": "Subscribe",
     "emailPrivacy": "No spam. Unsubscribe anytime.",
-    "emailSuccess": "Subscribed!",
+    "emailSuccess": "Check your email to confirm!",
     "emailError": "Something went wrong. Try again."
   },
   "editor": {
     "headerProcess": "Process",
     "headerSave": "Save",
+    "share": "Share",
+    "shareCopied": "Link copied!",
+    "shareFailed": "Could not create link",
     "undo": "Undo",
     "redo": "Redo",
     "clearCanvas": "Clear canvas",
@@ -115,6 +118,14 @@
     "getStarted": "Get Started",
     "buyCrypto": "Buy with Crypto",
     "payCrypto": "Pay with Crypto",
+    "restoreTitle": "Already paid?",
+    "restoreDesc": "Enter the email from your payment receipt and we'll send a link to restore your plan on any device.",
+    "restoreButton": "Send restore link",
+    "restoreSending": "Sending...",
+    "restoreSent": "If a purchase exists for this email, the restore link is on its way.",
+    "restoreError": "Could not send the restore link. Please try again later.",
+    "restoreSuccess": "Plan restored: {{plan}} is now active on this device.",
+    "restoreInvalid": "This restore link is invalid or has expired. Request a new one below.",
     "features": {
       "freeFiles": "Up to 10 files per batch",
       "freeNodes": "4 nodes per pipeline",
@@ -148,7 +159,7 @@
     "txId": "Transaction ID (TxID)",
     "txIdPlaceholder": "Paste the 64-char transaction hash...",
     "emailReceipt": "Email for receipt",
-    "emailOptional": "(optional)",
+    "emailOptional": "(optional — needed to restore your plan later)",
     "emailPlaceholder": "your@email.com",
     "verify": "Verify Transaction",
     "checking": "Checking transaction...",
@@ -164,6 +175,10 @@
     "receiptSkipped": "No receipt email requested.",
     "receiptFailed": "Could not send receipt email.",
     "wrongAmount": "Sent the wrong amount or network? Contact us with your TxID to resolve it."
+  },
+  "share": {
+    "loading": "Loading shared pipeline...",
+    "notFound": "This pipeline link is invalid or has expired."
   },
   "faq": {
     "title": "Frequently Asked Questions",

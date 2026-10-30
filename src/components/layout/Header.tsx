@@ -1,4 +1,5 @@
-import { Play, Ban, Save, Undo2, Redo2, Menu, HelpCircle } from "lucide-react";
+import { useState } from "react";
+import { Play, Ban, Save, Share2, Check, Undo2, Redo2, Menu, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useFilesStore } from "../../stores/files.store";
@@ -8,6 +9,7 @@ import { useUIStore } from "../../stores/ui.store";
 import { useUserStore } from "../../stores/user.store";
 import { UsageIndicator } from "./UsageIndicator";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { trackEvent, Events } from "../../lib/analytics";
 import { cn } from "../../lib";
 
 export function Header({ onProcess }: { onProcess: () => void }) {
@@ -41,6 +43,29 @@ export function Header({ onProcess }: { onProcess: () => void }) {
   const handleClear = () => {
     if (nodes.length === 0) return;
     if (window.confirm(t("editor.clearCanvasConfirm"))) resetPipeline();
+  };
+
+  const [shareState, setShareState] = useState<"idle" | "busy" | "copied" | "error">("idle");
+
+  const handleShare = async () => {
+    if (nodes.length === 0 || shareState === "busy") return;
+    setShareState("busy");
+    try {
+      const res = await fetch("/api/pipeline/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pipeline: { version: "1.0", nodes, edges } }),
+      });
+      const data = await res.json() as { success?: boolean; data?: { url?: string } };
+      if (!res.ok || !data.success || !data.data?.url) throw new Error("share failed");
+      await navigator.clipboard.writeText(data.data.url);
+      trackEvent(Events.SHARE_CLICKED, { nodes: nodes.length });
+      setShareState("copied");
+    } catch {
+      setShareState("error");
+    } finally {
+      setTimeout(() => setShareState("idle"), 2500);
+    }
   };
 
   return (
@@ -110,6 +135,26 @@ export function Header({ onProcess }: { onProcess: () => void }) {
         >
           <Save className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">{t("editor.headerSave")}</span>
+        </button>
+        <button
+          onClick={handleShare}
+          disabled={!canSave || shareState === "busy"}
+          title={shareState === "error" ? t("editor.shareFailed") : undefined}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+            canSave && shareState !== "busy"
+              ? shareState === "copied"
+                ? "bg-green-500/15 text-green-400"
+                : shareState === "error"
+                  ? "bg-red-500/15 text-red-400"
+                  : "bg-white/10 hover:bg-white/15 text-gray-200"
+              : "text-gray-600 cursor-not-allowed"
+          )}
+        >
+          {shareState === "copied" ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">
+            {shareState === "copied" ? t("editor.shareCopied") : shareState === "error" ? t("editor.shareFailed") : t("editor.share")}
+          </span>
         </button>
         <span
           className={cn(

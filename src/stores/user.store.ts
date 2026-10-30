@@ -14,6 +14,7 @@ interface UserState {
   resetAt: string | null;
 
   setPlan: (plan: PlanTier) => void;
+  setSessionId: (sessionId: string) => void;
   incrementUsage: (files: number) => void;
   resetUsage: () => void;
   checkServerLimit: (limitType: string) => Promise<{ allowed: boolean; limit: number; resetAt: string | null }>;
@@ -51,6 +52,11 @@ export const useUserStore = create<UserState>()(
         setPlan: (plan) => {
           set({ plan });
           bc?.postMessage({ type: "plan-update", plan });
+        },
+
+        setSessionId: (sessionId) => {
+          set({ sessionId });
+          void get().syncPlanFromServer();
         },
 
         incrementUsage: (files) => {

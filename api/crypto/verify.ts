@@ -4,9 +4,9 @@ import { kv } from "../_shared/kv.js";
 import { jsonResponse, errorResponse, corsResponse } from "../_shared/response.js";
 import { getClientIP } from "../_shared/ip.js";
 
-const TRONSCAN_API = "https://apilist.tronscan.org/api/transaction";
-const TRONGRID_API = "https://api.trongrid.io/v1/accounts";
-const USDT_ADDRESS = process.env.USDT_ADDRESS || "TPenBbjw2BE1zBMot2kKrNuGgYdbPvQwDr";
+const TRONSCAN_TX_API = "https://apilist.tronscan.org/api/transaction-info";
+const TRONGRID_TX_API = "https://api.trongrid.io/v1/transactions";
+const USDT_ADDRESS = process.env.USDT_ADDRESS || "THuqvL1xc44ksPzULvHzWTNVCp8JCruKS9";
 const USDT_CONTRACT = process.env.USDT_CONTRACT || "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
@@ -17,29 +17,42 @@ const ACCEPTED_AMOUNTS: Record<string, { plan: "pro" | "lifetime"; months: numbe
   "30": { plan: "lifetime", months: 1200 },
 };
 
-interface Trc20Transfer {
-  to_address: string;
-  amount_str: string;
-  transaction_id: string;
-  block_ts: number;
+interface TronscanTxInfo {
+  timestamp?: number;
+  trc20TransferInfo?: Array<{
+    to_address?: string;
+    amount_str?: string;
+    contract_address?: string;
+  }>;
+}
+
+interface TrongridEvent {
+  event_name?: string;
   contract_address?: string;
-}
-
-interface TronscanResponse {
-  data?: { trc20Transfers?: Trc20Transfer[] }[];
-}
-
-interface TrongridTransfer {
-  transaction_id: string;
-  value: string;
-  to_address: string;
-  block_timestamp: number;
-  token_info?: { address?: string; name?: string; symbol?: string };
+  block_timestamp?: number;
+  result?: { to?: string; value?: string };
 }
 
 interface TrongridResponse {
-  data?: TrongridTransfer[];
-  meta?: { page_size: number; fingerprint?: string };
+  data?: TrongridEvent[];
+}
+
+function base58ToHex(address: string): string | null {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  let num = 0n;
+  for (const ch of address) {
+    const idx = alphabet.indexOf(ch);
+    if (idx < 0) return null;
+    num = num * 58n + BigInt(idx);
+  }
+  let hex = num.toString(16);
+  if (hex.length % 2) hex = "0" + hex;
+  let leadingZeros = 0;
+  for (const ch of address) {
+    if (ch === "1") leadingZeros++;
+    else break;
+  }
+  return "00".repeat(leadingZeros) + hex;
 }
 
 export default async function handler(request: Request): Promise<Response> {
@@ -99,36 +112,34 @@ export default async function handler(request: Request): Promise<Response> {
     let usingFallback = false;
 
     const tryTronScan = async (): Promise<boolean> => {
-      const url = `${TRONSCAN_API}?sort=-timestamp&limit=30&address=${USDT_ADDRESS}&start_timestamp=${minTimestamp}&count=true`;
-      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      const res = await fetch(`${TRONSCAN_TX_API}?hash=${txId}`, { headers: { "Accept": "application/json" } });
       if (!res.ok) return false;
-      const json = await res.json() as TronscanResponse;
-      for (const item of json.data || []) {
-        const transfers = item.trc20Transfers || [];
-        for (const tx of transfers) {
-          if (tx.transaction_id.toLowerCase() !== txId.toLowerCase()) continue;
-          const toAddress = tx.to_address?.toLowerCase() || "";
-          const contractAddress = tx.contract_address?.toLowerCase() || "";
-          if (toAddress !== USDT_ADDRESS.toLowerCase()) continue;
-          if (contractAddress && contractAddress !== USDT_CONTRACT.toLowerCase()) continue;
-          const txAmount = parseInt(tx.amount_str);
-          if (txAmount >= parseInt(minAmountWei)) return true;
-        }
+      const json = await res.json() as TronscanTxInfo;
+      for (const tx of json.trc20TransferInfo || []) {
+        if ((tx.to_address || "").toLowerCase() !== USDT_ADDRESS.toLowerCase()) continue;
+        const contractAddress = (tx.contract_address || "").toLowerCase();
+        if (contractAddress && contractAddress !== USDT_CONTRACT.toLowerCase()) continue;
+        if (json.timestamp && json.timestamp < minTimestamp) continue;
+        const txAmount = parseInt(tx.amount_str || "0", 10);
+        if (txAmount >= parseInt(minAmountWei)) return true;
       }
       return false;
     };
 
     const tryTrongrid = async (): Promise<boolean> => {
-      const url = `${TRONGRID_API}/${USDT_ADDRESS}/transactions/trc20?only_to=true&min_timestamp=${minTimestamp}&limit=30`;
-      const res = await fetch(url, { headers: { "Accept": "application/json", "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY || "" } });
+      const res = await fetch(`${TRONGRID_TX_API}/${txId}/events`, { headers: { "Accept": "application/json", "TRON-PRO-API-KEY": process.env.TRONGRID_API_KEY || "" } });
       if (!res.ok) return false;
+      const expectedHex = base58ToHex(USDT_ADDRESS);
+      if (!expectedHex) return false;
+      const expectedHash160 = expectedHex.substring(2, 42).toLowerCase();
       const json = await res.json() as TrongridResponse;
-      for (const tx of json.data || []) {
-        if (tx.transaction_id.toLowerCase() !== txId.toLowerCase()) continue;
-        if ((tx.to_address || "").toLowerCase() !== USDT_ADDRESS.toLowerCase()) continue;
-        const contractAddress = tx.token_info?.address || "";
-        if (contractAddress && contractAddress.toLowerCase() !== USDT_CONTRACT.toLowerCase()) continue;
-        const txAmount = parseInt(tx.value);
+      for (const ev of json.data || []) {
+        if (ev.event_name !== "Transfer") continue;
+        if ((ev.contract_address || "").toLowerCase() !== USDT_CONTRACT.toLowerCase()) continue;
+        if (ev.block_timestamp && ev.block_timestamp < minTimestamp) continue;
+        const toHex = (ev.result?.to || "").toLowerCase().replace(/^0x/, "");
+        if (toHex !== expectedHash160) continue;
+        const txAmount = parseInt(ev.result?.value || "0", 10);
         if (txAmount >= parseInt(minAmountWei)) return true;
       }
       return false;

@@ -132,6 +132,7 @@ All endpoints are deployed as Vercel Edge Functions at `https://imagepipeline.ar
 | `GET /api/pipeline/:id` | Load shared pipeline |
 | `POST /api/error` | Report client-side error |
 | `GET /api/cleanup` | Cron job (KV cleanup) |
+| `GET /api/stats` | Payments/subscribers stats (admin key) |
 
 ## i18n
 

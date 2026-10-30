@@ -70,6 +70,10 @@ export const kv = {
     return kvCommand<number>("zremrangebyscore", key, min as string, max as string);
   },
 
+  async zrem(key: string, ...members: string[]): Promise<number> {
+    return kvCommand<number>("zrem", key, ...members);
+  },
+
   async zcard(key: string): Promise<number> {
     return kvCommand<number>("zcard", key);
   },

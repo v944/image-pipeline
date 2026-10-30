@@ -4,8 +4,9 @@ import { kv } from "../_shared/kv.js";
 import { jsonResponse, errorResponse, corsResponse } from "../_shared/response.js";
 import { getClientIP } from "../_shared/ip.js";
 
-const ALLOWED_NODE_TYPES = new Set(["load", "resize", "crop", "compress", "format", "watermark", "rename", "denoise", "export"]);
+const ALLOWED_NODE_TYPES = new Set(["load", "resize", "crop", "compress", "format", "watermark", "rename", "denoise", "emotion", "hsl", "brightness", "contrast", "exposure", "blur", "sharpen", "temperature", "grayscale", "rotate", "export"]);
 const MAX_PIPELINE_SIZE = 65536;
+const MAX_NODES = 100;
 
 function generateShareId(): string {
   const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -31,8 +32,8 @@ function validatePipeline(body: Record<string, unknown>): { pipeline?: Record<st
     return { error: errorResponse("INVALID_SCHEMA", "pipeline.version must be semver (e.g. 1.0)", 400) };
   }
 
-  if (!Array.isArray(nodes) || nodes.length < 1 || nodes.length > 20) {
-    return { error: errorResponse("INVALID_SCHEMA", "pipeline.nodes must be an array of 1-20 nodes", 400) };
+  if (!Array.isArray(nodes) || nodes.length < 1 || nodes.length > MAX_NODES) {
+    return { error: errorResponse("INVALID_SCHEMA", `pipeline.nodes must be an array of 1-${MAX_NODES} nodes`, 400) };
   }
 
   for (const node of nodes) {

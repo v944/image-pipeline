@@ -5,6 +5,7 @@ import { EditorLayout } from "./components/layout/EditorLayout";
 import { FaqPage } from "./pages/FaqPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { TermsPage } from "./pages/TermsPage";
+import { SharePage } from "./pages/SharePage";
 import { CookieBanner } from "./components/layout/CookieBanner";
 import { SEOHead } from "./components/SEOHead";
 import { Analytics } from "@vercel/analytics/react";
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/editor" element={<EditorLayout />} />
+        <Route path="/s/:shareId" element={<SharePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CookieBanner />

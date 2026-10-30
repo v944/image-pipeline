@@ -83,7 +83,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!allowed) {
       responseData.reason = "FREE_TIER_LIMIT_REACHED";
-      responseData.upgradeUrl = `${process.env.APP_URL || "https://image-pipeline.vercel.app"}/upgrade`;
+      responseData.upgradeUrl = `${process.env.APP_URL || "https://image-pipeline.vercel.app"}/pricing`;
     }
 
     return jsonResponse(responseData, 200, {

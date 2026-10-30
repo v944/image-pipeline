@@ -39,6 +39,15 @@ export default async function handler(request: Request): Promise<Response> {
       return errorResponse("INVALID_PLAN", "Invalid plan", 400);
     }
 
+    const sessionId = typeof body.sessionId === "string" && /^[0-9a-f-]{36}$/i.test(body.sessionId) ? body.sessionId : null;
+    if (sessionId) {
+      await kv.set(
+        `recovery:${email}`,
+        JSON.stringify({ sessionId, plan, txId, createdAt: new Date().toISOString() }),
+        10 * 365 * 24 * 60 * 60
+      );
+    }
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

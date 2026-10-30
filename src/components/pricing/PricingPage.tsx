@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,51 @@ export function PricingPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
+  const setSessionId = useUserStore((s) => s.setSessionId);
   const [cryptoTier, setCryptoTier] = useState<"pro" | "lifetime" | null>(null);
+  const [restoreEmail, setRestoreEmail] = useState("");
+  const [restoreStatus, setRestoreStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [restoreNotice, setRestoreNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get("restore");
+    if (!token) return;
+    window.history.replaceState({}, "", "/pricing");
+    let cancelled = false;
+    fetch(`/api/crypto/recover?token=${encodeURIComponent(token)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        if (!d?.success || !d.data?.valid) {
+          setRestoreNotice(t("pricing.restoreInvalid"));
+          return;
+        }
+        const { sessionId, plan: restoredPlan } = d.data as { sessionId: string; plan: string };
+        setSessionId(sessionId);
+        const planLabel = restoredPlan === "lifetime" ? t("pricing.lifetime") : t("pricing.pro");
+        setRestoreNotice(t("pricing.restoreSuccess", { plan: planLabel }));
+      })
+      .catch(() => {
+        if (!cancelled) setRestoreNotice(t("pricing.restoreError"));
+      });
+    return () => { cancelled = true; };
+  }, [setSessionId, t]);
+
+  const requestRestore = async () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(restoreEmail.trim())) return;
+    setRestoreStatus("sending");
+    try {
+      const res = await fetch("/api/crypto/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: restoreEmail.trim() }),
+      });
+      const data = await res.json() as { success?: boolean };
+      setRestoreStatus(data.success ? "sent" : "error");
+    } catch {
+      setRestoreStatus("error");
+    }
+  };
 
   const PLANS = [
     {
@@ -64,12 +108,22 @@ export function PricingPage() {
     },
   ];
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(restoreEmail.trim());
+
   return (
     <section className="max-w-6xl mx-auto px-6 py-16">
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold mb-3">{t("pricing.title")}</h2>
         <p className="text-gray-400">{t("pricing.subtitle")}</p>
       </div>
+
+      {restoreNotice && (
+        <div className="max-w-4xl mx-auto mb-8">
+          <p className="text-sm text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 text-center">
+            {restoreNotice}
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {PLANS.map((p) => {
@@ -128,6 +182,37 @@ export function PricingPage() {
             </div>
           );
         })}
+      </div>
+
+      <div className="max-w-md mx-auto mt-12 border border-white/5 bg-white/[0.02] rounded-2xl p-6">
+        <h3 className="text-base font-semibold mb-1">{t("pricing.restoreTitle")}</h3>
+        <p className="text-xs text-gray-500 mb-4">{t("pricing.restoreDesc")}</p>
+        <div className="flex gap-2">
+          <input
+            type="email"
+            value={restoreEmail}
+            onChange={(e) => {
+              setRestoreEmail(e.target.value);
+              if (restoreStatus !== "idle") setRestoreStatus("idle");
+            }}
+            placeholder={t("cryptoModal.emailPlaceholder")}
+            className="flex-1 min-w-0 bg-[#0D0D14] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
+            disabled={restoreStatus === "sending"}
+          />
+          <button
+            onClick={requestRestore}
+            disabled={restoreStatus === "sending" || !emailValid}
+            className="shrink-0 bg-white/5 hover:bg-white/10 disabled:bg-white/5 disabled:text-gray-600 text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+          >
+            {restoreStatus === "sending" ? t("pricing.restoreSending") : t("pricing.restoreButton")}
+          </button>
+        </div>
+        {restoreStatus === "sent" && (
+          <p className="text-xs text-gray-400 mt-3">{t("pricing.restoreSent")}</p>
+        )}
+        {restoreStatus === "error" && (
+          <p className="text-xs text-red-400 mt-3">{t("pricing.restoreError")}</p>
+        )}
       </div>
 
       {cryptoTier && (

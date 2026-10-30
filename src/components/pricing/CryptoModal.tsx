@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Copy, Check, Loader2, ExternalLink, Mail } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import QRCode from "qrcode";
 import { useVerifyTrc20 } from "../../hooks/useVerifyTrc20";
 import { useUserStore } from "../../stores/user.store";
 import { trackEvent, Events } from "../../lib/analytics";
 
-const FALLBACK_ADDRESS = "TPenBbjw2BE1zBMot2kKrNuGgYdbPvQwDr";
+const FALLBACK_ADDRESS = "THuqvL1xc44ksPzULvHzWTNVCp8JCruKS9";
 
 const PRICES: Record<string, { label: string; usdt: number; months: number }> = {
   pro: { label: "Pro", usdt: 10, months: 1200 },
@@ -34,18 +35,27 @@ export function CryptoModal({
   const [qrsrc, setQrsrc] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/crypto/config")
       .then((r) => r.json())
       .then((d) => {
-        if (d?.data?.usdtAddress) {
-          setUsdtAddress(d.data.usdtAddress);
-          setQrsrc(`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=usdt:${d.data.usdtAddress}&bgcolor=0D0D14&color=F59E0B`);
-        }
+        if (!cancelled && d?.data?.usdtAddress) setUsdtAddress(d.data.usdtAddress);
       })
-      .catch(() => {
-        setQrsrc(`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=usdt:${FALLBACK_ADDRESS}&bgcolor=0D0D14&color=F59E0B`);
-      });
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(`usdt:${usdtAddress}`, {
+      width: 176,
+      margin: 1,
+      color: { dark: "#F59E0B", light: "#0D0D14" },
+    })
+      .then((url) => { if (!cancelled) setQrsrc(url); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [usdtAddress]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -68,6 +78,7 @@ export function CryptoModal({
           email,
           plan: tier,
           txId: txInput.trim(),
+          sessionId,
         }),
       });
       const data = await res.json() as { success: boolean; data?: { sent: boolean } };
@@ -79,7 +90,7 @@ export function CryptoModal({
     } catch {
       setReceiptStatus("failed");
     }
-  }, [tier, txInput]);
+  }, [tier, txInput, sessionId]);
 
   useEffect(() => {
     if (status === "verified") {
