@@ -35,6 +35,7 @@ export function CryptoModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [qrsrc, setQrsrc] = useState("");
+  const [telegramPay, setTelegramPay] = useState(false);
   const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string }>({ phase: "idle" });
 
   useEffect(() => {
@@ -42,7 +43,9 @@ export function CryptoModal({
     fetch("/api/crypto/config")
       .then((r) => r.json())
       .then((d) => {
-        if (!cancelled && d?.data?.usdtAddress) setUsdtAddress(d.data.usdtAddress);
+        if (cancelled) return;
+        if (d?.data?.usdtAddress) setUsdtAddress(d.data.usdtAddress);
+        setTelegramPay(!!d?.data?.telegramPay);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -216,6 +219,7 @@ export function CryptoModal({
             </div>
           </div>
 
+          {telegramPay && (
           <div className="bg-[#0D0D14] rounded-xl p-4 space-y-2">
             <p className="text-xs text-gray-500">{t("cryptoModal.telegram.desc")}</p>
             {(tg.phase === "idle" || tg.phase === "creating" || tg.phase === "error" || tg.phase === "expired") && (
@@ -263,6 +267,7 @@ export function CryptoModal({
               </div>
             )}
           </div>
+          )}
 
           <div className="bg-[#0D0D14] rounded-xl p-4">
             <label className="text-xs text-gray-500 mb-1 block">{t("cryptoModal.sendTo")}</label>
