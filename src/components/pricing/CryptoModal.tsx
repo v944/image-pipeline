@@ -156,6 +156,7 @@ export function CryptoModal({
         return;
       }
       window.open(d.url, "_blank", "noopener,noreferrer");
+      trackEvent(Events.INVOICE_CREATED, { plan: tier, price: price.usdt });
       setTg({ phase: "waiting", url: d.url, hash: d.hash });
     } catch {
       setTg({ phase: "error" });
@@ -209,6 +210,7 @@ export function CryptoModal({
 
   const handleVerify = () => {
     if (txInput.trim()) {
+      trackEvent(Events.TX_SUBMITTED, { plan: tier, price: price.usdt });
       startChecking(sessionId, txInput.trim());
     }
   };

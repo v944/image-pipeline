@@ -22,7 +22,7 @@ export function UsageIndicator({ compact }: { compact?: boolean }) {
 
   useEffect(() => {
     if (plan !== "free") return;
-    checkServerLimit("files");
+    checkServerLimit("files", { dry: true });
   }, [plan, checkServerLimit]);
 
   useEffect(() => {

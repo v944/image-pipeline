@@ -32,6 +32,7 @@ export default async function handler(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const sessionIdParam = url.searchParams.get("sessionId") || "";
     const limitTypeParam = url.searchParams.get("limitType") || "";
+    const dry = url.searchParams.get("dry") === "1";
 
     const isValidSessionId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionIdParam);
     if (!isValidSessionId || !ALLOWED_LIMIT_TYPES.has(limitTypeParam)) {
@@ -66,17 +67,17 @@ export default async function handler(request: Request): Promise<Response> {
     const remaining = Math.max(0, limitConfig.limit - current);
     const allowed = remaining > 0;
 
-    if (allowed) {
+    if (allowed && !dry) {
       await kv.zadd(windowKey, now, `${now}-${crypto.randomUUID().slice(0, 6)}`);
       await kv.expire(windowKey, Math.ceil(limitConfig.windowMs / 1000));
-    } else {
+    } else if (!allowed && !dry) {
       const abuseLog = `abuse:${clientIP}:${limitTypeParam}:${now}`;
       await kv.set(abuseLog, JSON.stringify({ ip: clientIP, limitType: limitTypeParam, timestamp: now, url: request.url }), 86400 * 30);
     }
 
     const resetAt = now + limitConfig.windowMs;
     const responseData: Record<string, unknown> = {
-      allowed, current: allowed ? current + 1 : current,
+      allowed, current: allowed && !dry ? current + 1 : current,
       limit: limitConfig.limit, resetAt: new Date(resetAt).toISOString(),
       tier: "free", limitType: limitTypeParam,
     };

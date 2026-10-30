@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { PlanTier } from "../types";
 import { edgeClient } from "../lib/edge-client";
+import { trackEvent, Events } from "../lib/analytics";
 
 interface UserState {
   plan: PlanTier;
@@ -17,7 +18,7 @@ interface UserState {
   setSessionId: (sessionId: string) => void;
   incrementUsage: (files: number) => void;
   resetUsage: () => void;
-  checkServerLimit: (limitType: string) => Promise<{ allowed: boolean; limit: number; resetAt: string | null }>;
+  checkServerLimit: (limitType: string, opts?: { dry?: boolean }) => Promise<{ allowed: boolean; limit: number; resetAt: string | null }>;
   syncPlanFromServer: () => Promise<void>;
 }
 
@@ -72,17 +73,20 @@ export const useUserStore = create<UserState>()(
 
         resetUsage: () => set({ usage: { filesProcessed: 0, batchesProcessed: 0 } }),
 
-        checkServerLimit: async (limitType) => {
+        checkServerLimit: async (limitType, opts) => {
           const isDev =
             typeof location !== "undefined" &&
             (location.hostname === "localhost" || location.hostname === "127.0.0.1");
           if (isDev) return { allowed: true, limit: Infinity, resetAt: null };
           const { sessionId } = get();
           try {
-            const result = await edgeClient.checkLimit(sessionId, limitType);
+            const result = await edgeClient.checkLimit(sessionId, limitType, opts?.dry);
             const newResetAt = result.resetAt ?? null;
             set({ resetAt: newResetAt });
             bc?.postMessage({ type: "usage-update", usage: get().usage, resetAt: newResetAt });
+            if (!result.allowed && !opts?.dry) {
+              trackEvent(Events.LIMIT_REACHED, { limitType });
+            }
             return {
               allowed: result.allowed,
               limit: result.limit,

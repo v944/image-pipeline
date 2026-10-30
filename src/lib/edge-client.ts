@@ -60,7 +60,7 @@ class EdgeClient {
     return host === "localhost" || host === "127.0.0.1";
   }
 
-  async checkLimit(sessionId: string, limitType: string): Promise<LimitResponse> {
+  async checkLimit(sessionId: string, limitType: string, dry = false): Promise<LimitResponse> {
     if (this.isDevHost()) {
       return {
         allowed: true,
@@ -77,8 +77,9 @@ class EdgeClient {
     }
 
     try {
+      const dryParam = dry ? "&dry=1" : "";
       const response = await this.fetchWithRetry(
-        `/api/check-limit?sessionId=${encodeURIComponent(sessionId)}&limitType=${limitType}`,
+        `/api/check-limit?sessionId=${encodeURIComponent(sessionId)}&limitType=${limitType}${dryParam}`,
         { headers: { "X-Session-Id": sessionId } }
       );
 

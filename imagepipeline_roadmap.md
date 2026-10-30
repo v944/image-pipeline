@@ -8,6 +8,7 @@
 **2026-07-09:** Landing page улучшен: demo GIF, CTA, trust badges, «How it works», соц.доказательство, email-подписка (KV), PH + Launch Llama + Uneed бейджи. Добавлены `/api/subscribers` (просмотр) и `/api/newsletter` (ручная рассылка через Resend). Деплой на imagepipeline.art.  
 **2026-07-11:** Добавлены ноды Emotion (цветокоррекция по эмоции: Joy, Sadness, Calm, Tension) и Saturation (настройка насыщенности со слайдером и числовым вводом). Live before/after preview с учётом upstream-цепи. FAQ обновлён.  
 **2026-07-14:** Добавлены ноды Brightness (☀️), Contrast (◐), Exposure (🔆) — каждая со слайдером + числовым вводом. Исправлен баг Multiple Export (теперь каждый Export нода генерирует отдельный файл в ZIP). Улучшен preview: thumbnail 300px, hover-увеличение, модальное окно сравнения с ползунком (клик по thumbnail). Деплой на imagepipeline.art.
+**2026-10-30:** Оплата через Telegram (CryptoBot) вместо Stripe — инвойсы USDT, автоактивация. Кошелёк USDT сменён. QR локально, верификация TxID по хешу, восстановление плана по email, экран успеха, шаринг пайплайнов, `/api/stats`, double opt-in + отписка, фикс CSP (QR, AlternativeTo), GA-события воронки, тесты canvas-операций (65 тестов). Подробности — в `imagepipeline_status.md` и CHANGES.md.
 
 ---
 
@@ -162,7 +163,7 @@ I built Image Pipeline because I was tired of uploading client work to cloud ser
 | **TronScan fallback (Trongrid API)** | TronScan лежит → платёж не проходит | Добавить Trongrid как secondary verifier | Средняя |
 | **Activation timeout UX** | Пользователь ввёл TxID, но он не подтвердился | Таймер + "Проверьте позже" + email-уведомление | Средняя |
 | **Payment confirmation email** | Пользователь не уверен, что платёж прошёл | Авто-письмо с подтверждением (Resend, Mailgun, или просто alert) | Низкая |
-| **Stripe/fiat опция** | Не все хотят крипто | Добавить Stripe как альтернативу (опционально) | Средняя |
+| **Альтернатива крипто-переводу** | Не все хотят возиться с кошельком Tron и TxID | ~~Stripe~~ → **CryptoBot (Telegram)**: инвойсы USDT, оплата в два касания, автоактивация | ✅ Сделано |
 | **Referral program** | Органический рост | "Приведи друга — получи Pro бесплатно" | Средняя |
 
 ---

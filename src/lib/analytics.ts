@@ -39,4 +39,7 @@ export const Events = {
   PURCHASE_INITIATED: "purchase_initiated",
   PURCHASE_COMPLETED: "purchase_completed",
   SHARE_CLICKED: "share_clicked",
+  LIMIT_REACHED: "limit_reached",
+  TX_SUBMITTED: "tx_submitted",
+  INVOICE_CREATED: "invoice_created",
 } as const;

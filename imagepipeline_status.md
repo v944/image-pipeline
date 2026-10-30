@@ -1,6 +1,34 @@
 # Image Pipeline — Status Summary (2026-07-14)
 
-## Project Info
+## Обновление 2026-10-30
+
+### Монетизация / платежи
+- Кошелёк USDT сменён на `THuqvL1xc44ksPzULvHzWTNVCp8JCruKS9` (env `USDT_ADDRESS`, fallback в коде обновлён).
+- **QR-код генерируется локально** (npm `qrcode`) — внешний api.qrserver.com больше не используется (был заблокирован CSP, плюс утечка адреса третьей стороне).
+- **Верификация TxID — прямой поиск по хешу**: TronScan `transaction-info`, фолбэк Trongrid `/transactions/{hash}/events` + base58→hex. Проблема лимита «30 последних транзакций» устранена.
+- **Оплата через Telegram (CryptoBot)**: новый эндпоинт `/api/crypto/telegram-pay` (инвойс USDT + polling статуса), автоматическая активация, возобновление инвойсов сессии (активация при оплате любого из инвойсов). Env: `CRYPTOBOT_API_TOKEN`, `CRYPTOBOT_API_URL` (тестнет: `testnet-pay.crypt.bot`). Проверено боевым платежом.
+- **Экран успеха после оплаты**: галочка, детали платежа (план/сумма/способ/идентификатор), кнопка «Open Editor».
+- **Восстановление плана по email**: `/api/crypto/recover` + блок «Уже оплатили?» на /pricing (одноразовая ссылка на email; запись создаётся при отправке квитанции).
+- `upgradeUrl` в check-limit исправлен на `/pricing`.
+
+### Продукт
+- **Шаринг пайплайнов**: кнопка Share в шапке редактора, роут `/s/:shareId`, whitelist нод в `share.ts` расширен до всех 19 (лимит 100).
+- **Бейдж плана в шапке лендинга** (Free / Pro / Lifetime).
+- Бейдж AlternativeTo в футере (`alternativeto.net` добавлен в CSP img-src).
+
+### Бэкенд / API
+- **`GET /api/stats`** — админ-статистика (оплаты, подписчики, сессии, abuse) по `ADMIN_KEY` / `x-admin-key`.
+- `/api/subscribe`: rate limit 5/мин + **double opt-in** (письмо-подтверждение, 24 ч); новый `GET /api/unsubscribe` с одноразовой ссылкой; в `/api/newsletter` персональные ссылки отписки + ключ через `x-admin-key`.
+- `/api/check-limit`: параметр `?dry=1` — UsageIndicator больше не расходует квоту пользователя при отображении.
+- `/api/cleanup`: реальная чистка (протухшие abuse-логи >30 дней) + статистика KV; в `kv.ts` добавлен `zrem`.
+- GA4-события воронки: `limit_reached`, `tx_submitted`, `invoice_created`; `purchase_completed` с параметром method (cryptobot/trc20).
+
+### Тесты
+- Новый `src/test/canvas-ops.test.ts` — 11 тестов на canvas-операции (blur, sharpen, rotate, hsl, temperature, grayscale, brightness) на node-canvas. Всего 65 тестов.
+
+## Что было на 2026-07-14
+
+### Project Info
 - **Domain:** `https://imagepipeline.art` (non-www canonical, Vercel nameservers)
 - **GitHub:** `github.com/v944/image-pipeline`
 - **Stack:** Vite 8 + React 19 + TypeScript 6 + @xyflow/react 12 + Zustand 5 + Tailwind CSS 4
@@ -204,11 +232,12 @@
 ## Next Steps (Priority)
 
 1. **Demo GIF** — ✅ done (deployed to https://imagepipeline.art/demo.gif)
-2. **Product Hunt launch** — prepare listing with demo + description
-3. **Blog post** — "How I built a client-side batch image processor" (Dev.to / Medium)
-4. **Submit to directories** — ✅ AlternativeTo (live), G2, Capterra, SaaSHub — pending
+2. **Product Hunt launch** — ✅ done
+3. **Blog post** — ✅ done (Medium); Dev.to — не приняли
+4. **Submit to directories** — ✅ AlternativeTo (live); G2, Capterra, SaaSHub — не пустили
 5. **Twitter/X presence** — @imagepipeline account
 6. **Per-image config** — different settings per file (optional, post-launch)
-7. **Noda Blur/Sharpen** — by user request
-8. **Noda Rotate/Flip** — by user request
+7. **Noda Blur/Sharpen** — ✅ done
+8. **Noda Rotate/Flip** — ✅ done (rotate)
 9. **Onboarding tooltips** — first-visit hints
+10. **Оплата через Telegram (CryptoBot)** — ✅ done (вместо Stripe: инвойсы USDT, автоактивация)
