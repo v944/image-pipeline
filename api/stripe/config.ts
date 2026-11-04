@@ -9,7 +9,7 @@ const DEFAULT_PRO_BUTTON_ID = "buy_btn_1UY5JlEtagaMJHGJpxpOEmj8";
 const DEFAULT_LIFETIME_BUTTON_ID = "buy_btn_1UY5ZzEtagaMJHGJWW9VCDth";
 // Shown on the Payment links page; used as the fallback when the embedded
 // buy button cannot load (ad blockers, slow/blocked networks).
-const DEFAULT_PRO_PAYMENT_URL = "https://buy.stripe.com/5kQ9ATbZgb4LbgS6rd6c001";
+const DEFAULT_PRO_PAYMENT_URL = "https://buy.stripe.com/5kQ9ATbZgb4Lbgs6rd6c001";
 const DEFAULT_LIFETIME_PAYMENT_URL = "https://buy.stripe.com/4gMeVd8N4fl184g8zl6c002";
 
 export default async function handler(request: Request): Promise<Response> {
