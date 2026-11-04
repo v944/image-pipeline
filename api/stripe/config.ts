@@ -7,6 +7,9 @@ import { jsonResponse, corsResponse } from "../_shared/response.js";
 const DEFAULT_PUBLISHABLE_KEY = "pk_live_wwinK07EKBP0nMmkV5xZwor000MfLkKtNJ";
 const DEFAULT_PRO_BUTTON_ID = "buy_btn_1UY5JlEtagaMJHGJpxpOEmj8";
 const DEFAULT_LIFETIME_BUTTON_ID = "buy_btn_1UY5ZzEtagaMJHGJWW9VCDth";
+// Shown on the Payment links page; used as the fallback when the embedded
+// buy button cannot load (ad blockers, slow/blocked networks).
+const DEFAULT_PRO_PAYMENT_URL = "https://buy.stripe.com/5kQ9ATbZgb4LbgS6rd6c001";
 
 export default async function handler(request: Request): Promise<Response> {
   if (request.method === "OPTIONS") return corsResponse("GET, OPTIONS");
@@ -17,6 +20,8 @@ export default async function handler(request: Request): Promise<Response> {
   const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY || DEFAULT_PUBLISHABLE_KEY;
   const proButtonId = process.env.STRIPE_PRO_BUTTON_ID || DEFAULT_PRO_BUTTON_ID;
   const lifetimeButtonId = process.env.STRIPE_LIFETIME_BUTTON_ID || DEFAULT_LIFETIME_BUTTON_ID;
+  const proPaymentUrl = process.env.STRIPE_PRO_PAYMENT_URL || DEFAULT_PRO_PAYMENT_URL;
+  const lifetimePaymentUrl = process.env.STRIPE_LIFETIME_PAYMENT_URL || "";
   const enabled = !!(process.env.STRIPE_SECRET_KEY && publishableKey && proButtonId);
 
   return jsonResponse({
@@ -24,6 +29,8 @@ export default async function handler(request: Request): Promise<Response> {
     publishableKey: enabled ? publishableKey : "",
     proButtonId: enabled ? proButtonId : "",
     lifetimeButtonId: enabled ? lifetimeButtonId : "",
+    proPaymentUrl: enabled ? proPaymentUrl : "",
+    lifetimePaymentUrl: enabled ? lifetimePaymentUrl : "",
     prices: {
       pro: { usd: 10, label: "Pro" },
       lifetime: { usd: 30, label: "Lifetime" },

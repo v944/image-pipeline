@@ -43,7 +43,10 @@ export function CryptoModal({
     publishableKey: string;
     proButtonId: string;
     lifetimeButtonId: string;
+    proPaymentUrl: string;
+    lifetimePaymentUrl: string;
   } | null>(null);
+  const [stripeUnavailable, setStripeUnavailable] = useState(false);
   const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string; error?: string }>({ phase: "idle" });
 
   useEffect(() => {
@@ -67,6 +70,8 @@ export function CryptoModal({
             publishableKey: s.publishableKey || "",
             proButtonId: s.proButtonId || "",
             lifetimeButtonId: s.lifetimeButtonId || "",
+            proPaymentUrl: s.proPaymentUrl || "",
+            lifetimePaymentUrl: s.lifetimePaymentUrl || "",
           });
         }
       })
@@ -240,6 +245,10 @@ export function CryptoModal({
   const txFlowBusy = status === "checking" || status === "verified" || tg.phase === "waiting" || tg.phase === "paid";
   const paid = status === "verified" || tg.phase === "paid";
   const stripeButtonId = tier === "pro" ? stripeCfg?.proButtonId : stripeCfg?.lifetimeButtonId;
+  const stripePaymentUrl = tier === "pro" ? stripeCfg?.proPaymentUrl : stripeCfg?.lifetimePaymentUrl;
+  const stripeDirectUrl = stripePaymentUrl
+    ? `${stripePaymentUrl}${stripePaymentUrl.includes("?") ? "&" : "?"}client_reference_id=${encodeURIComponent(sessionId)}`
+    : "";
   const navigate = useNavigate();
 
   return (
@@ -340,14 +349,40 @@ export function CryptoModal({
             </div>
           </div>
 
-          {stripeCfg?.enabled && stripeButtonId && (
+          {stripeCfg?.enabled && (stripeButtonId || stripeDirectUrl) && (
             <div className="bg-[#0D0D14] rounded-xl p-4 space-y-2">
               <p className="text-xs text-gray-500">{t("cryptoModal.stripe.desc")}</p>
-              <StripeBuyButton
-                buyButtonId={stripeButtonId}
-                publishableKey={stripeCfg.publishableKey}
-                clientReferenceId={sessionId}
-              />
+              {stripeButtonId && !stripeUnavailable && (
+                <>
+                  <StripeBuyButton
+                    buyButtonId={stripeButtonId}
+                    publishableKey={stripeCfg.publishableKey}
+                    clientReferenceId={sessionId}
+                    onUnavailable={() => setStripeUnavailable(true)}
+                  />
+                  {stripeDirectUrl && (
+                    <a
+                      href={stripeDirectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-center text-[11px] text-gray-600 hover:text-gray-400 underline underline-offset-2 transition-colors"
+                    >
+                      {t("cryptoModal.stripe.direct")}
+                    </a>
+                  )}
+                </>
+              )}
+              {(stripeUnavailable || !stripeButtonId) && stripeDirectUrl && (
+                <a
+                  href={stripeDirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-200 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  {t("cryptoModal.stripe.fallback")}
+                </a>
+              )}
             </div>
           )}
 

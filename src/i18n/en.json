@@ -244,7 +244,9 @@
       "error": "Could not create invoice. Try again later."
     },
     "stripe": {
-      "desc": "Card, Apple Pay, or Google Pay via Stripe — instant activation after payment."
+      "desc": "Card, Apple Pay, or Google Pay via Stripe — instant activation after payment.",
+      "fallback": "Pay by card (opens Stripe)",
+      "direct": "Form not loading? Pay via direct link"
     }
   },
   "share": {

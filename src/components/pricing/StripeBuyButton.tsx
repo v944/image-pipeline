@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare module "react" {
   namespace JSX {
@@ -13,6 +13,7 @@ declare module "react" {
 }
 
 const STRIPE_BUY_BUTTON_SCRIPT = "https://js.stripe.com/v3/buy-button.js";
+const LOAD_TIMEOUT_MS = 8000;
 
 let stripeScriptPromise: Promise<void> | null = null;
 
@@ -41,23 +42,39 @@ interface StripeBuyButtonProps {
   buyButtonId: string;
   publishableKey: string;
   clientReferenceId: string;
+  onUnavailable?: () => void;
 }
 
-export function StripeBuyButton({ buyButtonId, publishableKey, clientReferenceId }: StripeBuyButtonProps) {
+export function StripeBuyButton({ buyButtonId, publishableKey, clientReferenceId, onUnavailable }: StripeBuyButtonProps) {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const onUnavailableRef = useRef(onUnavailable);
+  onUnavailableRef.current = onUnavailable;
 
   useEffect(() => {
     let cancelled = false;
+    const timeout = setTimeout(() => {
+      if (cancelled) return;
+      // Script never loaded — typically an ad blocker or a blocked CDN.
+      // Report up so a direct payment link can be shown instead.
+      setFailed(true);
+      onUnavailableRef.current?.();
+    }, LOAD_TIMEOUT_MS);
     loadStripeBuyButtonScript()
       .then(() => {
-        if (!cancelled) setReady(true);
+        if (cancelled) return;
+        clearTimeout(timeout);
+        setReady(true);
       })
       .catch(() => {
-        if (!cancelled) setFailed(true);
+        if (cancelled) return;
+        clearTimeout(timeout);
+        setFailed(true);
+        onUnavailableRef.current?.();
       });
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
     };
   }, []);
 
