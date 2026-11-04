@@ -128,7 +128,7 @@ export function CryptoModal({
 
   const checkInvoice = useCallback(async (hash: string) => {
     try {
-      const res = await fetch(`/api/crypto/telegram-pay?hash=${encodeURIComponent(hash)}&sessionId=${sessionId}`);
+      const res = await fetch(`/api/crypto/telegram-pay?hash=${encodeURIComponent(hash)}&sessionId=${sessionId}&tier=${tier}`);
       const data = await res.json() as { success: boolean; data?: { paid?: boolean; plan?: string; status?: string }; error?: { code?: string; message?: string } };
       const d = data.data;
       if (!data.success || !d) {
@@ -144,13 +144,13 @@ export function CryptoModal({
     } catch {
       // transient network error — polling continues
     }
-  }, [sessionId]);
+  }, [sessionId, tier]);
 
   const createInvoice = useCallback(async () => {
     setTg({ phase: "creating" });
     try {
       // Resume this session's latest invoice instead of creating a duplicate
-      const last = await fetch(`/api/crypto/telegram-pay?sessionId=${sessionId}`)
+      const last = await fetch(`/api/crypto/telegram-pay?sessionId=${sessionId}&tier=${tier}`)
         .then((r) => r.json())
         .catch(() => null) as { success?: boolean; data?: { paid?: boolean; status?: string; hash?: string; url?: string } } | null;
       const ld = last?.data;

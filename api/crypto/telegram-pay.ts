@@ -123,25 +123,27 @@ type ResolvedInvoice =
   | { kind: "active"; hash: string; url: string; invoiceId: number }
   | { kind: "none" };
 
-async function hasActiveEntitlement(sessionId: string): Promise<boolean> {
+async function hasEntitlement(sessionId: string, plan: string): Promise<boolean> {
   const raw = await kv.get(`session:${sessionId}`);
   if (!raw) return false;
   try {
     const tier = (JSON.parse(raw) as { tier?: string }).tier;
-    return tier === "pro" || tier === "lifetime" || tier === "team";
+    return tier === plan;
   } catch {
     return false;
   }
 }
 
-async function resolveSessionInvoice(sessionId: string): Promise<ResolvedInvoice> {
-  const invoices = await getSessionInvoices(sessionId);
+async function resolveSessionInvoice(sessionId: string, tier: string): Promise<ResolvedInvoice> {
+  // Only invoices for the plan currently being bought count. A paid Pro
+  // invoice must not complete a Lifetime purchase.
+  const invoices = (await getSessionInvoices(sessionId)).filter((i) => i.record.plan === tier);
   if (invoices.length === 0) return { kind: "none" };
   const activated = invoices.find((i) => i.record.activated);
   // Trust the cached flag only while the entitlement it granted still exists.
   // A stale "activated" record must never unlock the paid state on its own —
   // fall through to a live CryptoBot check instead.
-  if (activated && await hasActiveEntitlement(sessionId)) {
+  if (activated && await hasEntitlement(sessionId, activated.record.plan)) {
     return { kind: "paid", hash: activated.hash, plan: activated.record.plan };
   }
   // Check each of the session's invoices (normally 1-3) against CryptoBot and
@@ -195,7 +197,7 @@ export default async function handler(request: Request): Promise<Response> {
       }
 
       // Resume this session's invoices instead of creating duplicates
-      const resolved = await resolveSessionInvoice(sessionId);
+      const resolved = await resolveSessionInvoice(sessionId, tier);
       if (resolved.kind === "paid") {
         return jsonResponse({ configured: true, hash: resolved.hash, invoiceId: 0, url: "", paid: true, plan: resolved.plan }, 200);
       }
@@ -252,6 +254,7 @@ export default async function handler(request: Request): Promise<Response> {
       const url = new URL(request.url);
       let hash = url.searchParams.get("hash") || "";
       const sessionId = url.searchParams.get("sessionId") || "";
+      const tierParam = url.searchParams.get("tier") || "";
 
       if (!/^[0-9a-f-]{36}$/i.test(sessionId)) {
         return errorResponse("INVALID_SCHEMA", "sessionId (uuid) is required", 400);
@@ -259,7 +262,10 @@ export default async function handler(request: Request): Promise<Response> {
 
       // Without an explicit hash, resolve this session's invoices (activate if any is paid)
       if (!hash) {
-        const resolved = await resolveSessionInvoice(sessionId);
+        if (!PLANS[tierParam]) {
+          return errorResponse("INVALID_SCHEMA", "tier (pro|lifetime) is required", 400);
+        }
+        const resolved = await resolveSessionInvoice(sessionId, tierParam);
         if (resolved.kind === "paid") return jsonResponse({ paid: true, plan: resolved.plan, hash: resolved.hash }, 200);
         if (resolved.kind === "active") return jsonResponse({ paid: false, status: "active", hash: resolved.hash, url: resolved.url }, 200);
         return jsonResponse({ paid: false, status: "none" }, 200);
@@ -273,6 +279,9 @@ export default async function handler(request: Request): Promise<Response> {
       const record = JSON.parse(raw) as { invoiceId: number; sessionId: string; plan: string; amount: string; url?: string; activated: boolean };
       if (record.sessionId !== sessionId) {
         return errorResponse("FORBIDDEN", "Session mismatch", 403);
+      }
+      if (tierParam && tierParam !== record.plan) {
+        return errorResponse("FORBIDDEN", "Plan mismatch", 403);
       }
       if (record.activated && await hasActiveEntitlement(sessionId)) {
         return jsonResponse({ paid: true, plan: record.plan, hash }, 200);
