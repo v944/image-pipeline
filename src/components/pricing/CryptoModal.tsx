@@ -3,6 +3,7 @@ import { X, Copy, Check, Loader2, ExternalLink, Mail, Send, CheckCircle2 } from 
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import QRCode from "qrcode";
+import { StripeBuyButton } from "./StripeBuyButton";
 import { useVerifyTrc20 } from "../../hooks/useVerifyTrc20";
 import { useUserStore } from "../../stores/user.store";
 import { trackEvent, Events } from "../../lib/analytics";
@@ -37,6 +38,12 @@ export function CryptoModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [qrsrc, setQrsrc] = useState("");
   const [telegramPay, setTelegramPay] = useState(false);
+  const [stripeCfg, setStripeCfg] = useState<{
+    enabled: boolean;
+    publishableKey: string;
+    proButtonId: string;
+    lifetimeButtonId: string;
+  } | null>(null);
   const [tg, setTg] = useState<{ phase: TgPhase; url?: string; hash?: string; error?: string }>({ phase: "idle" });
 
   useEffect(() => {
@@ -47,6 +54,21 @@ export function CryptoModal({
         if (cancelled) return;
         if (d?.data?.usdtAddress) setUsdtAddress(d.data.usdtAddress);
         setTelegramPay(!!d?.data?.telegramPay);
+      })
+      .catch(() => {});
+    fetch("/api/stripe/config")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        const s = d?.data;
+        if (s?.enabled) {
+          setStripeCfg({
+            enabled: true,
+            publishableKey: s.publishableKey || "",
+            proButtonId: s.proButtonId || "",
+            lifetimeButtonId: s.lifetimeButtonId || "",
+          });
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -217,6 +239,7 @@ export function CryptoModal({
 
   const txFlowBusy = status === "checking" || status === "verified" || tg.phase === "waiting" || tg.phase === "paid";
   const paid = status === "verified" || tg.phase === "paid";
+  const stripeButtonId = tier === "pro" ? stripeCfg?.proButtonId : stripeCfg?.lifetimeButtonId;
   const navigate = useNavigate();
 
   return (
@@ -316,6 +339,17 @@ export function CryptoModal({
               <span className="text-sm font-medium text-gray-200">TRC-20 (Tron)</span>
             </div>
           </div>
+
+          {stripeCfg?.enabled && stripeButtonId && (
+            <div className="bg-[#0D0D14] rounded-xl p-4 space-y-2">
+              <p className="text-xs text-gray-500">{t("cryptoModal.stripe.desc")}</p>
+              <StripeBuyButton
+                buyButtonId={stripeButtonId}
+                publishableKey={stripeCfg.publishableKey}
+                clientReferenceId={sessionId}
+              />
+            </div>
+          )}
 
           {telegramPay && (
           <div className="bg-[#0D0D14] rounded-xl p-4 space-y-2">

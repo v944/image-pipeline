@@ -11,6 +11,7 @@ export function PricingPage() {
   const { t } = useTranslation();
   const plan = useUserStore((s) => s.plan);
   const setSessionId = useUserStore((s) => s.setSessionId);
+  const syncPlanFromServer = useUserStore((s) => s.syncPlanFromServer);
   const [cryptoTier, setCryptoTier] = useState<"pro" | "lifetime" | null>(null);
   const [restoreEmail, setRestoreEmail] = useState("");
   const [restoreStatus, setRestoreStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -39,6 +40,53 @@ export function PricingPage() {
       });
     return () => { cancelled = true; };
   }, [setSessionId, t]);
+
+  // Stripe "after payment" redirect: /pricing?stripe=return&session_id=cs_...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("stripe") !== "return") return;
+    const checkoutId = params.get("session_id") || "";
+    window.history.replaceState({}, "", "/pricing");
+
+    if (!/^cs_(live|test)_[A-Za-z0-9]+$/.test(checkoutId)) {
+      setRestoreNotice(t("pricing.stripeReturnError"));
+      return;
+    }
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 20;
+    setRestoreNotice(t("pricing.stripeReturnChecking"));
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/stripe/check?session_id=${encodeURIComponent(checkoutId)}`);
+        const data = await res.json() as { success?: boolean; data?: { paid?: boolean; plan?: string } };
+        if (cancelled) return;
+        if (data?.data?.paid) {
+          syncPlanFromServer();
+          const planLabel = data.data.plan === "lifetime" ? t("pricing.lifetime") : t("pricing.pro");
+          setRestoreNotice(t("pricing.stripeReturnSuccess", { plan: planLabel }));
+          return;
+        }
+        if (++attempts < maxAttempts) {
+          setTimeout(poll, 3000);
+        } else {
+          setRestoreNotice(t("pricing.stripeReturnPending"));
+        }
+      } catch {
+        if (cancelled) return;
+        if (++attempts < maxAttempts) {
+          setTimeout(poll, 3000);
+        } else {
+          setRestoreNotice(t("pricing.stripeReturnError"));
+        }
+      }
+    };
+
+    void poll();
+    return () => { cancelled = true; };
+  }, [syncPlanFromServer, t]);
 
   const requestRestore = async () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(restoreEmail.trim())) return;

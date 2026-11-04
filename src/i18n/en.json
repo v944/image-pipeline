@@ -160,7 +160,7 @@
     "popular": "Popular",
     "currentPlan": "Current Plan",
     "getStarted": "Get Started",
-    "buyCrypto": "Buy with Crypto / Telegram",
+    "buyCrypto": "Buy",
     "payCrypto": "Pay with Crypto",
     "restoreTitle": "Already paid?",
     "restoreDesc": "Enter the email from your payment receipt and we'll send a link to restore your plan on any device.",
@@ -170,6 +170,10 @@
     "restoreError": "Could not send the restore link. Please try again later.",
     "restoreSuccess": "Plan restored: {{plan}} is now active on this device.",
     "restoreInvalid": "This restore link is invalid or has expired. Request a new one below.",
+    "stripeReturnChecking": "Verifying your payment...",
+    "stripeReturnSuccess": "Payment confirmed! Your {{plan}} plan is now active on this device.",
+    "stripeReturnPending": "Stripe is still processing your payment. If you were charged, your plan will activate within a couple of minutes and the receipt will arrive by email.",
+    "stripeReturnError": "Could not verify the Stripe payment. If you were charged, use the email restore form below.",
     "features": {
       "freeFiles": "Up to 10 files per batch",
       "freeNodes": "4 nodes per pipeline",
@@ -192,7 +196,7 @@
     }
   },
   "cryptoModal": {
-    "title": "Pay with Crypto",
+    "title": "Payment",
     "amount": "Amount",
     "plan": "Plan",
     "network": "Network",
@@ -238,6 +242,9 @@
       "check": "Check payment status",
       "expired": "Invoice expired. Create a new one.",
       "error": "Could not create invoice. Try again later."
+    },
+    "stripe": {
+      "desc": "Card, Apple Pay, or Google Pay via Stripe — instant activation after payment."
     }
   },
   "share": {
