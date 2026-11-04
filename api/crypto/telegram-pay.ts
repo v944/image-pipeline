@@ -123,11 +123,27 @@ type ResolvedInvoice =
   | { kind: "active"; hash: string; url: string; invoiceId: number }
   | { kind: "none" };
 
+async function hasActiveEntitlement(sessionId: string): Promise<boolean> {
+  const raw = await kv.get(`session:${sessionId}`);
+  if (!raw) return false;
+  try {
+    const tier = (JSON.parse(raw) as { tier?: string }).tier;
+    return tier === "pro" || tier === "lifetime" || tier === "team";
+  } catch {
+    return false;
+  }
+}
+
 async function resolveSessionInvoice(sessionId: string): Promise<ResolvedInvoice> {
   const invoices = await getSessionInvoices(sessionId);
   if (invoices.length === 0) return { kind: "none" };
   const activated = invoices.find((i) => i.record.activated);
-  if (activated) return { kind: "paid", hash: activated.hash, plan: activated.record.plan };
+  // Trust the cached flag only while the entitlement it granted still exists.
+  // A stale "activated" record must never unlock the paid state on its own —
+  // fall through to a live CryptoBot check instead.
+  if (activated && await hasActiveEntitlement(sessionId)) {
+    return { kind: "paid", hash: activated.hash, plan: activated.record.plan };
+  }
   // Check each of the session's invoices (normally 1-3) against CryptoBot and
   // activate on ANY paid one — the user may have paid an older invoice.
   let latestActive: SessionInvoice | null = null;
@@ -258,7 +274,7 @@ export default async function handler(request: Request): Promise<Response> {
       if (record.sessionId !== sessionId) {
         return errorResponse("FORBIDDEN", "Session mismatch", 403);
       }
-      if (record.activated) {
+      if (record.activated && await hasActiveEntitlement(sessionId)) {
         return jsonResponse({ paid: true, plan: record.plan, hash }, 200);
       }
 

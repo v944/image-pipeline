@@ -155,7 +155,7 @@ export function CryptoModal({
         .catch(() => null) as { success?: boolean; data?: { paid?: boolean; status?: string; hash?: string; url?: string } } | null;
       const ld = last?.data;
       if (ld?.paid) {
-        setTg({ phase: "paid" });
+        setTg({ phase: "paid", hash: ld.hash });
         return;
       }
       if (ld?.status === "active" && ld.hash && ld.url) {
@@ -175,7 +175,7 @@ export function CryptoModal({
         return;
       }
       if (d.paid) {
-        setTg({ phase: "paid" });
+        setTg({ phase: "paid", hash: d.hash });
         return;
       }
       if (!d.url) {
