@@ -247,6 +247,9 @@
       "desc": "Card, Apple Pay, or Google Pay via Stripe — instant activation after payment.",
       "fallback": "Pay by card (opens Stripe)",
       "direct": "Form not loading? Pay via direct link"
+    },
+    "manual": {
+      "desc": "Or manually: send USDT (TRC-20) to the address below and paste the TxID."
     }
   },
   "share": {

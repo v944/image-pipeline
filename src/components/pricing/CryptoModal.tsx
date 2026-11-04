@@ -336,16 +336,12 @@ export function CryptoModal({
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">{t("cryptoModal.amount")}</span>
               <span className="text-sm font-semibold text-amber-400">
-                {price.usdt} USDT (TRC-20)
+                ${price.usdt}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">{t("cryptoModal.plan")}</span>
               <span className="text-sm font-medium text-gray-200">{price.label}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">{t("cryptoModal.network")}</span>
-              <span className="text-sm font-medium text-gray-200">TRC-20 (Tron)</span>
             </div>
           </div>
 
@@ -439,26 +435,28 @@ export function CryptoModal({
           </div>
           )}
 
-          <div className="bg-[#0D0D14] rounded-xl p-4">
-            <label className="text-xs text-gray-500 mb-1 block">{t("cryptoModal.sendTo")}</label>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs text-amber-300 font-mono truncate bg-white/5 px-2 py-1.5 rounded-lg">
-                {usdtAddress}
-              </code>
-              <button
-                onClick={handleCopy}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-gray-200 transition-colors"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-              </button>
+          <div className="bg-[#0D0D14] rounded-xl p-4 space-y-3">
+            <p className="text-xs text-gray-500">{t("cryptoModal.manual.desc")}</p>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">{t("cryptoModal.sendTo")}</label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs text-amber-300 font-mono truncate bg-white/5 px-2 py-1.5 rounded-lg">
+                  {usdtAddress}
+                </code>
+                <button
+                  onClick={handleCopy}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                  {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
 
-          {qrsrc && (
-            <div className="bg-[#0D0D14] rounded-xl p-4 text-center">
-              <img src={qrsrc} alt={t("cryptoModal.qrCode")} className="w-44 h-44 mx-auto rounded-lg" />
-            </div>
-          )}
+            {qrsrc && (
+              <div className="text-center">
+                <img src={qrsrc} alt={t("cryptoModal.qrCode")} className="w-44 h-44 mx-auto rounded-lg" />
+              </div>
+            )}
 
           <div>
             <label className="text-xs text-gray-500 mb-1 block">{t("cryptoModal.txId")}</label>
@@ -468,7 +466,7 @@ export function CryptoModal({
               value={txInput}
               onChange={(e) => setTxInput(e.target.value)}
               placeholder={t("cryptoModal.txIdPlaceholder")}
-              className="w-full bg-[#0D0D14] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 font-mono placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 font-mono placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
               disabled={txFlowBusy}
             />
           </div>
@@ -482,7 +480,7 @@ export function CryptoModal({
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               placeholder={t("cryptoModal.emailPlaceholder")}
-              className="w-full bg-[#0D0D14] border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-amber-500/50"
               disabled={txFlowBusy}
             />
           </div>
@@ -544,6 +542,7 @@ export function CryptoModal({
           <p className="text-[10px] text-gray-600 text-center">
             {t("cryptoModal.wrongAmount")}
           </p>
+          </div>
         </div>
         )}
       </div>
