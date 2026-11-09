@@ -25,9 +25,9 @@ function PricingPageWrapper() {
   );
 }
 
-export default function App() {
+export function AppRoutes() {
   return (
-    <BrowserRouter>
+    <>
       <SEOHead />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -41,6 +41,14 @@ export default function App() {
       </Routes>
       <CookieBanner />
       <Analytics />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

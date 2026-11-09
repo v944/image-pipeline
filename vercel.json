@@ -12,55 +12,55 @@
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "ref" }],
-      "destination": "/:path?ref=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "source" }],
-      "destination": "/:path?source=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "utm_source" }],
-      "destination": "/:path?utm_source=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "utm_medium" }],
-      "destination": "/:path?utm_medium=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "utm_campaign" }],
-      "destination": "/:path?utm_campaign=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "utm_term" }],
-      "destination": "/:path?utm_term=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "utm_content" }],
-      "destination": "/:path?utm_content=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "fbclid" }],
-      "destination": "/:path?fbclid=",
+      "destination": "/:path",
       "permanent": true
     },
     {
       "source": "/:path(.*)",
       "has": [{ "type": "query", "key": "gclid" }],
-      "destination": "/:path?gclid=",
+      "destination": "/:path",
       "permanent": true
     }
   ],
@@ -80,7 +80,7 @@
     { "source": "/api/stats", "destination": "/api/stats.ts" },
     { "source": "/api/newsletter", "destination": "/api/newsletter.ts" },
     { "source": "/api/error", "destination": "/api/error.ts" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/app.html" }
   ],
   "crons": [
     {
@@ -116,6 +116,24 @@
     },
     {
       "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/editor",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/s/(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
