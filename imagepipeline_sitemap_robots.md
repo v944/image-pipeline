@@ -50,7 +50,13 @@ Sitemap: https://imagepipeline.art/sitemap.xml
 
 ## 3. sitemap.xml
 
-Создать файл `public/sitemap.xml`:
+**Актуально (с 2026-11-09):** `sitemap.xml` **генерируется автоматически при сборке** скриптом `scripts/prerender.mjs` (шаг `node scripts/prerender.mjs` в `npm run build`). Ручной файл `public/sitemap.xml` удалён.
+
+- Скрипт пишет `dist/sitemap.xml` после `vite build` (файл из `public/` перезаписывается — поэтому его и убрали).
+- `<lastmod>` берётся из **даты последнего git-коммита**, затронувшего исходники страницы (для `/` — `src/components/landing/`, `src/components/pricing/PricingPage.tsx`, `src/i18n/en.json`, `src/seoMeta.ts`; для остальных — их страница + `en.json` + `seoMeta.ts`). Вне git-окружения — фолбэк на mtime файлов.
+- Чтобы добавить страницу в sitemap: добавьте роут в `prerenderRoutes` и `pageMeta` в `src/seoMeta.ts`, а путь к файлам страницы — в `routeSources` в `scripts/prerender.mjs`.
+
+Историческая ручная разметка (для справки):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -66,36 +72,6 @@ Sitemap: https://imagepipeline.art/sitemap.xml
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- Pricing / Plans page (if exists) -->
-  <!--
-  <url>
-    <loc>https://imagepipeline.art/pricing</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  -->
-
-  <!-- Privacy Policy (if exists) -->
-  <!--
-  <url>
-    <loc>https://imagepipeline.art/privacy</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  -->
-
-  <!-- Terms of Service (if exists) -->
-  <!--
-  <url>
-    <loc>https://imagepipeline.art/terms</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  -->
 
 </urlset>
 ```
@@ -113,29 +89,21 @@ Sitemap: https://imagepipeline.art/sitemap.xml
 
 ## 4. Если страниц больше — расширенный sitemap
 
-Если у сайта появляются дополнительные страницы (блог, документация, кейсы), раскомментируйте блоки выше и добавьте новые:
+Если у сайта появляются дополнительные страницы (блог, документация, кейсы):
+1. Добавьте роут в `prerenderRoutes` и мету в `pageMeta` (`src/seoMeta.ts`).
+2. Добавьте файлы страницы в `routeSources` (`scripts/prerender.mjs`) — чтобы `lastmod` считался по её изменениям.
 
-```xml
-  <!-- Blog / Articles -->
-  <url>
-    <loc>https://imagepipeline.art/blog</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Individual blog post -->
-  <url>
-    <loc>https://imagepipeline.art/blog/batch-resize-guide</loc>
-    <lastmod>2026-07-01</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
+```text
+Пример: новая страница /blog
+  src/seoMeta.ts:        pageMeta['/blog'] = {...}; prerenderRoutes.push('/blog')
+  scripts/prerender.mjs: routeSources['/blog'] = ['src/pages/BlogPage.tsx', ...sharedSources]
 ```
 
 ---
 
 ## 5. Автоматическая генерация sitemap (для динамических сайтов)
+
+> **В этом проекте уже реализовано** — генерация встроена в `scripts/prerender.mjs` (см. раздел 3). Ниже примеры для других стеков, если проект переедет.
 
 Если проект на React/Vue/Next.js и страницы генерируются динамически, используйте библиотеку:
 
@@ -192,8 +160,8 @@ console.log('sitemap.xml generated');
 
 ## 6. Чек-лист для агента
 
-- [ ] Создать файл `public/robots.txt` с содержимым из раздела 2
-- [ ] Создать файл `public/sitemap.xml` с содержимым из раздела 3
+- [x] Создать файл `public/robots.txt` с содержимым из раздела 2
+- [ ] sitemap.xml генерируется сборкой (`scripts/prerender.mjs`) — вручную не создавать; убедиться, что `npm run build` отрабатывает без ошибок
 - [ ] Задеплоить на Vercel
 - [ ] Проверить доступность:
   - `https://imagepipeline.art/robots.txt`
